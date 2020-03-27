@@ -5,6 +5,8 @@ from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from dummy.views import DummyViewSet
+
 app_name = 'v1'
 
 schema_view = get_schema_view(
@@ -25,6 +27,7 @@ router = DefaultRouter()
 ### SETUP YOUR API URLS HERE ### # noqa: E266
 
 # router.register(...)
+router.register('dummy', DummyViewSet, basename='dummy')
 
 ################################
 
