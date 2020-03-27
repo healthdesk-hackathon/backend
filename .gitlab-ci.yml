@@ -1,0 +1,133 @@
+image: docker:stable
+services:
+  - docker:dind
+
+
+variables:
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+
+  BACKEND_TESTING_TAG: testing
+  BACKEND_RELEASE_TAG: latest
+  BACKEND_COMMIT_TAG: $CI_COMMIT_REF_NAME
+  BACKEND_LOCATION: .
+  BACKEND_IMAGE_SUFFIX: ''
+
+  POSTGRES_DB: project_test_db
+  POSTGRES_USER: runner
+  POSTGRES_PASSWORD: project_test_pw
+
+
+stages:
+  - test
+  - release
+  - deploy
+
+
+.job_template: &enable_registry
+  variables:
+    BACKEND_TESTING_IMAGE: ${CI_REGISTRY_IMAGE}${BACKEND_IMAGE_SUFFIX}:${BACKEND_TESTING_TAG}
+    BACKEND_RELEASE_IMAGE: ${CI_REGISTRY_IMAGE}${BACKEND_IMAGE_SUFFIX}:${BACKEND_RELEASE_TAG}
+    BACKEND_TAGGED_IMAGE: ${CI_REGISTRY_IMAGE}${BACKEND_IMAGE_SUFFIX}:${BACKEND_COMMIT_TAG}
+    BACKEND_CACHE_IMAGE: ${CI_REGISTRY_IMAGE}${BACKEND_IMAGE_SUFFIX}:${CI_COMMIT_SHORT_SHA}
+
+
+  before_script:
+    - cd $BACKEND_LOCATION
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+  after_script:
+    - docker logout $CI_REGISTRY
+
+backend-test-application:
+  image: python:3.7
+  services:
+    - postgres
+  stage: test
+  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - $BACKEND_LOCATION/**/*
+  before_script:
+    - if [[ ! -d "$BACKEND_LOCATION/.git" ]]; then cp -r .git $BACKEND_LOCATION; fi
+    - cd $BACKEND_LOCATION
+    - apt-get -qq update
+    - apt-get -y -qq install git memcached libpcre3-dev libpq-dev > /dev/null
+    - pip install -q --upgrade pipenv
+    - pipenv install
+    - pipenv install --dev
+    - cp .env.gitlab-ci .env
+  script:
+    - pipenv run pipenv check
+    - pipenv run flake8
+    - pipenv run pytest
+    - cd -
+  artifacts:
+    paths:
+      - $BACKEND_LOCATION/htmlcov/
+    expire_in: 2 days
+
+
+backend-release-production-image:
+  <<: *enable_registry
+  stage: release
+  allow_failure: false
+  when: manual
+  dependencies:
+    - backend-test-application
+  only:
+    refs:
+      - master
+  script:
+    - docker pull $BACKEND_TESTING_IMAGE || true
+    - rm -f .env
+    - docker build --cache-from $BACKEND_TESTING_IMAGE -t $BACKEND_RELEASE_IMAGE --build-arg release="production-$CI_COMMIT_SHORT_SHA" .
+    - docker push $BACKEND_RELEASE_IMAGE
+
+backend-release-testing-image:
+  <<: *enable_registry
+  stage: release
+  dependencies:
+    - backend-test-application
+  only:
+    refs:
+      - develop
+  script:
+    - docker pull $BACKEND_TESTING_IMAGE || true
+    - docker build --cache-from $BACKEND_TESTING_IMAGE -t $BACKEND_TESTING_IMAGE --build-arg release="testing-$CI_COMMIT_SHORT_SHA" .
+    - docker push $BACKEND_TESTING_IMAGE
+
+backend-release-tagged-image:
+  <<: *enable_registry
+  stage: release
+  allow_failure: false
+  when: manual
+  dependencies:
+    - backend-test-application
+  only:
+    refs:
+      - tags
+  script:
+    - docker pull $BACKEND_TESTING_IMAGE || true
+    - rm -f .env
+    - docker build --cache-from $BACKEND_TESTING_IMAGE -t $BACKEND_TAGGED_IMAGE .
+    - docker push $BACKEND_TAGGED_IMAGE
+
+pages:
+  stage: deploy
+  allow_failure: true
+  only:
+    refs:
+      - master
+  dependencies:
+    - backend-test-application
+  script:
+    - ls -lArth
+    - mkdir -p public/$BACKEND_LOCATION || true
+    - mv $BACKEND_LOCATION/htmlcov/ public/$BACKEND_LOCATION/
+  artifacts:
+    paths:
+      - public/$BACKEND_LOCATION
+    expire_in: 30 days

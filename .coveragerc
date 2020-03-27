@@ -1,0 +1,14 @@
+[run]
+branch = True
+omit =
+    static/*
+    media/*
+    .docker/*
+    project/*
+    */migrations/*
+    manage.py
+    .venv/*
+    */node_modules/*
+
+[report]
+show_missing = True

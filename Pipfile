@@ -1,0 +1,27 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+flake8 = "*"
+pytest = "*"
+pytest-django = "*"
+pytest-cov = "*"
+pytest-xdist = "*"
+
+[packages]
+django = "*"
+psycopg2-binary = "*"
+djangorestframework = "*"
+django-filter = "*"
+markdown = "*"
+djangorestframework-simplejwt = "*"
+drf-yasg = {extras = ["validation"],version = "*"}
+django-cors-headers = "*"
+django-environ = "*"
+packaging = "*"
+sentry-sdk = "*"
+
+[requires]
+python_version = "3.7"

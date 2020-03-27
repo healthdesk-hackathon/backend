@@ -1,0 +1,14 @@
+[flake8]
+# see https://docs.djangoproject.com/en/dev/internals/contributing/writing-code/coding-style/
+max_line_length=119
+ignore=E225,E261,W391,E241,W504
+exclude=
+    .git,
+    __pycache__,
+    application/settings*.py,
+    **/__init__.py,
+    */migrations/*,
+    node_modules,
+    .yarn,
+    .venv
+max-complexity=10

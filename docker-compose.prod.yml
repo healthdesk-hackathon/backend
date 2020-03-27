@@ -1,0 +1,56 @@
+version: '3.7'
+
+services:
+  prod_backend:
+    image: registry.git.smartfactory.ch/${PROJECT_PATH}/backend:latest
+
+    depends_on:
+      - prod_db
+
+    env_file:
+      - backend/.env.prod
+
+    volumes:
+      - ./data/prod/media:/app/media
+      - ./data/prod/static:/app/static
+
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      mode: replicated
+      replicas: 2 # To allow updates without interruption of service
+
+  prod_db:
+    image: postgres:alpine
+    env_file:
+      - backend/.env.prod
+    volumes:
+      - ./data/prod/db:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      mode: replicated
+      replicas: 1 # For the sake of consistency, we just keep one replica
+
+  prod_backup:
+    image: prodrigestivill/postgres-backup-local
+    env_file:
+      - backend/.env.prod
+    volumes:
+      - ./data/prod/backups:/backups
+    links:
+      - prod_db
+    depends_on:
+      - prod_db
+    environment:
+      - HEALTHCHECK_PORT=443
+
+
