@@ -9,6 +9,7 @@ pytest = "*"
 pytest-django = "*"
 pytest-cov = "*"
 pytest-xdist = "*"
+autopep8 = "*"
 
 [packages]
 django = "*"
@@ -22,6 +23,8 @@ django-cors-headers = "*"
 django-environ = "*"
 packaging = "*"
 sentry-sdk = "*"
+gunicorn = "*"
+django-heroku = "*"
 
 [requires]
 python_version = "3.7"
