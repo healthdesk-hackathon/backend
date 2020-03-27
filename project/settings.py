@@ -71,6 +71,7 @@ INSTALLED_APPS = [
 
     'custom_auth',
     'api',
+    'dummy'
 ]
 
 MIDDLEWARE = [
