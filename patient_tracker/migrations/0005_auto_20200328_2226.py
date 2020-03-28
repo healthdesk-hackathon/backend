@@ -20,6 +20,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='assignedbed',
             name='bed_type',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='beds_types_assigned', to='patient_tracker.BedType', validators=[patient_tracker.models.AssignedBed.validate_bed_type_available]),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='beds_types_assigned', to='patient_tracker.BedType'),
         ),
     ]

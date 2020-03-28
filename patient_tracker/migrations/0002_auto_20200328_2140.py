@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, validators=[patient_tracker.models.prevent_update])),
                 ('waiting_since', models.DateTimeField(auto_now_add=True)),
                 ('admission', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='assigned_bed', to='patient_tracker.Admission')),
-                ('bed_type', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='assigned_beds', to='patient_tracker.BedType', validators=[patient_tracker.models.AssignedBed.validate_bed_type_available])),
+                ('bed_type', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='assigned_beds', to='patient_tracker.BedType')),
                 ('waiting_for_bed_type', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='waiting_for_assigned_beds', to='patient_tracker.BedType')),
             ],
         ),

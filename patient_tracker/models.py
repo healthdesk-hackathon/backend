@@ -3,7 +3,7 @@ import hashlib
 import uuid
 
 from django.db import transaction
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core import validators
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -27,14 +27,36 @@ class Admission(models.Model):
     """
     Represents the admission into the hospital system, when the admins / triage have
     performed the initial steps for getting the patient into the system.
+
+    This class not only represents the action of admission, but also the person as they move 
+    around inside the hospital system. This saves us having to reference up to the 'Patient'
+    record, the parent of this.
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    local_barcode = models.CharField(max_length=150, unique=True)
+    local_barcode = models.CharField(max_length=150, unique=True, null=True)
     # submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='admissions', null=True)
+    admitted_at = models.DateTimeField(auto_now_add=True)
 
-    def assigned_bed(self):
+    def current_bed(self):
         return self.assigned_beds.first()
+
+    def assign_bed(self, bed_type):
+        new_bed = AssignedBed(admission = self, bed_type=bed_type)
+        new_bed.save()
+        return new_bed
+
+
+class Discharge(models.Model):
+    """
+    Represents the discharge from the hospital system, when the admins / triage have
+    completed any steps to release them.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='admissions', null=True)
+    discharged_at = models.DateTimeField(auto_now_add=True)
+
 
 class BedType(models.Model):
     """The numbers of each type of bed that a hospital has as resources.
@@ -67,6 +89,14 @@ class BedType(models.Model):
         return self.number_available() > 0
         
 
+class Bed(models.Model):
+    """
+    Individual bed resources that can be assigned to a patient.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    bed_type = models.ForeignKey(BedType, on_delete=models.CASCADE, null=False, related_name='beds')
+
+
 class AssignedBed(models.Model):
     """
     By assigning a new bed to a patient, we must choose the type of bed that is required.
@@ -89,19 +119,10 @@ class AssignedBed(models.Model):
     to prevent race conditions from assigning a single bed to two patients.
     """
 
-    def validate_bed_type_available(bed_type):
-        """before saving, if a bed type has been set, check that the requested bed type is available
-        """
-    
-        if bed_type and not bed_type.is_available():
-            raise ValidationError(
-                'Bed type "%(value)s" is not available. Select another bed type, or add to the waiting list', 
-                params={'value': bed_type.name}
-            )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, validators=[prevent_update])
     admission = models.ForeignKey(Admission, on_delete=models.CASCADE, null=False, related_name='assigned_beds')
-    bed_type = models.ForeignKey(BedType, validators=[validate_bed_type_available], on_delete=models.CASCADE, null=True, related_name='assigned_bed_types')
+    bed_type = models.ForeignKey(BedType, on_delete=models.CASCADE, null=True, related_name='assigned_bed_types')
     waiting_for_bed_type = models.ForeignKey(BedType, on_delete=models.CASCADE, null=True, related_name='waiting_for_assigned_beds')
     waiting_since = models.DateTimeField(auto_now_add=True)
 
@@ -110,12 +131,12 @@ class AssignedBed(models.Model):
         """override save to handle the (re)assignment of a patient to a bed
         """
         with transaction.atomic():
-            # failsafe: check again that the bed is available, since we may not have a locking transaction in place yet
+            # check that the bed is available. A validator on the foreign key field doesn't seem to work
             if not self.bed_type.is_available():
-                raise OperationalError('Bed type "%(value)s" is not available', params={'value': self.bed_type.name})
+                raise ObjectDoesNotExist('Bed type is not available')
 
             # Does the current admission have an assigned bed already?
-            if self.admission.assigned_bed:
+            if self.id and self.admission.current_bed():
                 # Release the current bed and assign the new one
                 self.leave_bed()
             
@@ -129,8 +150,10 @@ class AssignedBed(models.Model):
         """
 
         with transaction.atomic():
-            assigned_bed = self.admission.assigned_bed()
-            if not assigned_bed:
+
+            assigned_bed = self.admission.current_bed()
+
+            if not assigned_bed or assigned_bed.id == self.id:
                 return  
 
             bed_type = assigned_bed.bed_type
@@ -155,3 +178,6 @@ class OutOfServiceBed(models.Model):
     when_out_of_service = models.DateTimeField(auto_now_add=True)
     reason = models.CharField(max_length=20, choices=ReasonChoices.choices)
 
+    def put_back_in_service(self):
+        """Return this bed to service"""
+        self.delete()
