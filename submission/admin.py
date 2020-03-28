@@ -4,7 +4,7 @@ import uuid
 
 from django.db import models
 from submission.models import Submission, Admission, PersonalData, Phone, OverallWellbeing, CommonSymptoms, \
-    GradedSymptoms, RelatedConditions, MedicalCenter
+    GradedSymptoms, RelatedConditions, ChosenMedicalCenter, MedicalCenter
 
 
 class AdmissionInline(admin.TabularInline):
@@ -35,6 +35,10 @@ class RelatedConditionsInline(admin.TabularInline):
     model = RelatedConditions
 
 
+class ChosenMedicalCenterInline(admin.TabularInline):
+    model = ChosenMedicalCenter
+
+
 @admin.register(Submission)
 class SubmissionAdmin(admin.ModelAdmin):
 
@@ -47,6 +51,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         GradedSymptomsInline,
         RelatedConditionsInline
     ]
+
 
 class MedicalCenterAdmin(models.Model):
     model = MedicalCenter
