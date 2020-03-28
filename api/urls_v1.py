@@ -5,7 +5,7 @@ from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from dummy.views import DummyViewSet
+from submission.views import SubmissionViewSet, PhoneViewSet, PersonalDataViewSet, AdmissionViewSet
 
 app_name = 'v1'
 
@@ -26,8 +26,10 @@ router = DefaultRouter()
 
 ### SETUP YOUR API URLS HERE ### # noqa: E266
 
-# router.register(...)
-router.register('dummy', DummyViewSet, basename='dummy')
+router.register('submission', SubmissionViewSet, basename='submission')
+router.register('phone', PhoneViewSet, basename='phone')
+router.register('personal-data', PersonalDataViewSet, basename='personal-data')
+router.register('admission', AdmissionViewSet, basename='admission')
 
 ################################
 
