@@ -26,14 +26,14 @@ class Submission(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     identifier = models.CharField(max_length=50, null=False)
     id_type = models.CharField(max_length=50, null=False)
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, null=True, related_name='submissions')
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, blank=True, null=True, related_name='submissions')
 
     @property
     def patient_anon_id(self):
         return hashlib.md5(self.id_type.encode() + self.identifier.encode()).digest()[:12]
 
     def save(self, **kwargs):
-        if not self.master:
+        if not self.patient:
             patient_id = self.patient_anon_id
             patient, _ = Patient.objects.get_or_create(anon_patient_id=patient_id)
             self.patient = patient
@@ -52,7 +52,6 @@ class Admission(models.Model):
 
 
 class PersonalData(models.Model):
-
     class GenderChoices(models.TextChoices):
         MALE = 'M', 'Male'
         FEMALE = 'F', 'Female'
