@@ -102,7 +102,7 @@ class OverallWellbeing(models.Model):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='overall_wellbeing')
+    submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='overall_wellbeing')
     overall_value = models.IntegerField(null=False, validators=[MaxValueValidator(10), MinValueValidator(0)])
 
 class CommonSymptoms(models.Model):
@@ -112,7 +112,7 @@ class CommonSymptoms(models.Model):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='common_symptoms')
+    submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='common_symptoms')
 
     chills = models.BooleanField(default=False, null=False)
     achy_joints_muscles = models.BooleanField(default=False, null=False)
@@ -136,7 +136,7 @@ class GradedSymptoms(models.Model):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='graded_symptoms')
+    submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='graded_symptoms')
 
     # How hard is it to breath
     difficulty_breathing = models.IntegerField(null=False, validators=[MaxValueValidator(10), MinValueValidator(0)])
@@ -150,7 +150,7 @@ class RelatedConditions(models.Model):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='related_conditions')
+    submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='related_conditions')
 
     heart_condition = models.BooleanField(null=False, default=False)
     high_blood_pressure = models.BooleanField(null=False, default=False)
