@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import datetime
 import os
 
+import django_heroku
 import environ
 
 import sentry_sdk
@@ -70,6 +71,8 @@ INSTALLED_APPS = [
 
     'custom_auth',
     'api',
+    'dummy',
+    'submission'
 ]
 
 MIDDLEWARE = [
@@ -195,3 +198,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 MEDIA_URL = '/backend-media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# CORS
+# https://pypi.org/project/django-cors-headers/
+CORS_ORIGIN_ALLOW_ALL = True
+
+if not DEBUG:
+    django_heroku.settings(locals())
