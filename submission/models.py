@@ -1,6 +1,7 @@
 import hashlib
 import uuid
 
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -84,3 +85,82 @@ class Phone(models.Model):
     verified = models.BooleanField(default=False, null=False)
     disabled = models.BooleanField(default=False, null=False)
 
+
+class OverallWellbeing(models.Model):
+    """
+    Overall wellbeing, as the patient assesses themselves
+
+    Attributes:
+        overall_value: has a value 0 to 10 inclusive, representing how they feel
+                        (0 awful, 10 amazing)
+
+    Alternative is to reverse it:
+    How bad did you, or do you, feel?
+    Unnoticeable..Worst feeling ever
+
+
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='overall_wellbeing')
+    overall_value = models.IntegerField(null=False, validators=[MaxValueValidator(10), MinValueValidator(0)])
+
+
+class CommonSymptoms(models.Model):
+    """
+    Symptoms that a patient believes they have.
+
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='common_symptoms')
+
+    chills = models.BooleanField(default=False, null=False)
+    achy_joints_muscles = models.BooleanField(default=False, null=False)
+    lost_taste_smell = models.BooleanField(default=False, null=False)
+    congestion = models.BooleanField(default=False, null=False)
+    stomach_disturbance = models.BooleanField(default=False, null=False)
+    tiredness = models.BooleanField(default=False, null=False)
+    headache = models.BooleanField(default=False, null=False)
+    dry_cough = models.BooleanField(default=False, null=False)
+    cough_with_sputum = models.BooleanField(default=False, null=False)
+    nauseous = models.BooleanField(default=False, null=False)
+    short_of_breath = models.BooleanField(default=False, null=False)
+    sore_throat = models.BooleanField(default=False, null=False)
+    fever = models.BooleanField(default=False, null=False)
+    runny_nose = models.BooleanField(default=False, null=False)
+
+
+class GradedSymptoms(models.Model):
+    """
+    Symptoms that a patient grades on a scale of 0 to 10
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='graded_symptoms')
+
+    # How hard is it to breath
+    difficulty_breathing = models.IntegerField(null=False, validators=[MaxValueValidator(10), MinValueValidator(0)])
+    # How anxious do you feel?
+    anxious = models.IntegerField(null=False, validators=[MaxValueValidator(10), MinValueValidator(0)])
+
+
+class RelatedConditions(models.Model):
+    """
+    How is your health?
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='related_conditions')
+
+    heart_condition = models.BooleanField(null=False, default=False)
+    high_blood_pressure = models.BooleanField(null=False, default=False)
+    asthma = models.BooleanField(null=False, default=False)
+    chronic_lung_problems = models.BooleanField(null=False, default=False)
+    mild_diabetes = models.BooleanField(null=False, default=False)
+    chronic_diabetes = models.BooleanField(null=False, default=False)
+    current_chemo = models.BooleanField(null=False, default=False)
+    past_chemo = models.BooleanField(null=False, default=False)
+    take_immunosuppressants = models.BooleanField(null=False, default=False)
+    pregnant = models.BooleanField(null=False, default=False)
+    smoke = models.BooleanField(null=False, default=False)
