@@ -2,9 +2,9 @@ from django.shortcuts import render
 
 from rest_framework import viewsets, permissions, mixins
 
-from submission.models import Admission, Submission, PersonalData, Phone, OverallWellbeing, CommonSymptoms, \
+from submission.models import Submission, PersonalData, Phone, OverallWellbeing, CommonSymptoms, \
     GradedSymptoms, RelatedConditions
-from submission.serializers import AdmissionSerializer, SubmissionSerializer, PersonalDataSerializer, PhoneSerializer, \
+from submission.serializers import SubmissionSerializer, PersonalDataSerializer, PhoneSerializer, \
     OverallWellbeingSerializer, CommonSymptomsSerializer, GradedSymptomsSerializer, RelatedConditionsSerializer
 
 
@@ -15,13 +15,6 @@ class SubmissionViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, mixins
 
     permission_classes = [permissions.AllowAny]
 
-
-class AdmissionViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
-
-    queryset = Admission.objects.all()
-    serializer_class = AdmissionSerializer
-
-    permission_classes = [permissions.AllowAny]
 
 
 class PersonalDataViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
