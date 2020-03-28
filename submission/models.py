@@ -19,22 +19,22 @@ class Submission(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     identifier = models.CharField(max_length=50, unique=True, null=False)
     id_type = models.CharField(max_length=50, null=False)
-    master_id = models.ForeignKey(Master, on_delete=models.CASCADE, null=True)
+    master = models.ForeignKey(Master, on_delete=models.CASCADE, null=True, related_name='submissions')
 
 
-# Represents the admission into the hospital system, when the admins / triage have 
+# Represents the admission into the hospital system, when the admins / triage have
 # performed the initial steps for getting the patient into the system.
 class Admission(models.Model):
-    
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     local_barcode = models.CharField(max_length=150, unique=True)
-    submission_id = models.ForeignKey(Submission, on_delete=models.CASCADE)
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='admissions')
 
 
 class Person(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    submission_id = models.ForeignKey(Submission, on_delete=models.CASCADE)
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='persons')
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     date_of_birth = models.DateField(auto_now=False, auto_now_add=False)
@@ -50,7 +50,7 @@ class Person(models.Model):
 class Phone(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    submission_id = models.ForeignKey(Submission, on_delete=models.CASCADE)
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='phones')
     phone_number = models.CharField(max_length=50)
     phone_type = models.CharField(max_length=10)
     rank = models.IntegerField()
