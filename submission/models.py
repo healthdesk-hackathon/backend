@@ -3,7 +3,7 @@ import uuid
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
+from submission.admin import MedicalCenter
 
 class Patient(models.Model):
     """
@@ -91,7 +91,7 @@ class OverallWellbeing(models.Model):
     Overall wellbeing, as the patient assesses themselves
 
     Attributes:
-        overall_value: has a value 0 to 10 inclusive, representing how they feel
+        overall_value: has a value 0 to 10 inclusive, representing how they feel 
                         (0 awful, 10 amazing)
 
     Alternative is to reverse it:
@@ -104,7 +104,6 @@ class OverallWellbeing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='overall_wellbeing')
     overall_value = models.IntegerField(null=False, validators=[MaxValueValidator(10), MinValueValidator(0)])
-
 
 class CommonSymptoms(models.Model):
     """
@@ -129,7 +128,7 @@ class CommonSymptoms(models.Model):
     sore_throat = models.BooleanField(default=False, null=False)
     fever = models.BooleanField(default=False, null=False)
     runny_nose = models.BooleanField(default=False, null=False)
-
+    
 
 class GradedSymptoms(models.Model):
     """
@@ -164,3 +163,15 @@ class RelatedConditions(models.Model):
     take_immunosuppressants = models.BooleanField(null=False, default=False)
     pregnant = models.BooleanField(null=False, default=False)
     smoke = models.BooleanField(null=False, default=False)
+
+
+class ChosenMedicalCenter(models.Model):
+    """
+    The patient has selected a preferred medical center. Record this selection
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='chosen_medical_center')
+
+    medical_center = models.ForeignKey(MedicalCenter, on_delete=models.CASCADE, related_name='medical_center')
+    
