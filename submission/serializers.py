@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from submission.models import Patient, Submission, Admission, PersonalData, Phone, OverallWellbeing, CommonSymptoms, \
+from submission.models import Patient, Submission, PersonalData, Phone, OverallWellbeing, CommonSymptoms, \
     GradedSymptoms, RelatedConditions
 
 
@@ -91,16 +91,6 @@ class PersonalDataSerializer(serializers.ModelSerializer):
         ]
 
 
-class AdmissionSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Admission
-        fields = [
-            'id',
-            'local_barcode',
-            'submission'
-        ]
-
 
 class PhoneSerializer(serializers.ModelSerializer):
 
@@ -120,7 +110,6 @@ class PhoneSerializer(serializers.ModelSerializer):
 class SubmissionSerializer(serializers.ModelSerializer):
 
     phones = PhoneSerializer(many=True, read_only=True)
-    admissions = AdmissionSerializer(many=True, read_only=True)
     persons = PersonalDataSerializer(many=True, read_only=True)
     common_symptoms = CommonSymptomsSerializer(read_only=True)
     graded_symptoms = GradedSymptomsSerializer(read_only=True)
@@ -133,7 +122,6 @@ class SubmissionSerializer(serializers.ModelSerializer):
             'identifier',
             'id_type',
             'phones',
-            'admissions',
             'persons',
             'common_symptoms',
             'graded_symptoms',

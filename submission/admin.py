@@ -3,12 +3,9 @@ import hashlib
 import uuid
 
 from django.db import models
-from submission.models import Submission, Admission, PersonalData, Phone, OverallWellbeing, CommonSymptoms, \
+from submission.models import Submission, PersonalData, Phone, OverallWellbeing, CommonSymptoms, \
     GradedSymptoms, RelatedConditions, ChosenMedicalCenter, MedicalCenter
 
-
-class AdmissionInline(admin.TabularInline):
-    model = Admission
 
 
 class PersonalDataInline(admin.TabularInline):
@@ -43,13 +40,13 @@ class ChosenMedicalCenterInline(admin.TabularInline):
 class SubmissionAdmin(admin.ModelAdmin):
 
     inlines = [
-        AdmissionInline,
         PhoneInline,
         PersonalDataInline,
         OverallWellbeingInline,
         CommonSymptomsInline,
         GradedSymptomsInline,
-        RelatedConditionsInline
+        RelatedConditionsInline,
+        ChosenMedicalCenterInline
     ]
 
 

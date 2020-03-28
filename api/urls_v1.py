@@ -5,8 +5,10 @@ from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from submission.views import SubmissionViewSet, PhoneViewSet, PersonalDataViewSet, AdmissionViewSet, \
+from submission.views import SubmissionViewSet, PhoneViewSet, PersonalDataViewSet, \
     OverallWellbeingViewSet, CommonSymptomsViewSet, GradedSymptomsViewSet, RelatedConditionsViewSet
+
+from patient_tracker.views import AdmissionViewSet
 
 app_name = 'v1'
 

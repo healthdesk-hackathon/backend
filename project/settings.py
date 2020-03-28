@@ -72,7 +72,8 @@ INSTALLED_APPS = [
     'custom_auth',
     'api',
     'dummy',
-    'submission'
+    'submission',
+    'patient_tracker'
 ]
 
 MIDDLEWARE = [
