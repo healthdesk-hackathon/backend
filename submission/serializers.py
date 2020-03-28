@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
-from submission.models import Master, Submission, Admission, Person, Phone
+from submission.models import Patient, Submission, Admission, PersonalData, Phone
 
 
-class PersonSerializer(serializers.ModelSerializer):
+class PersonalDataSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Person
+        model = PersonalData
         fields = [
             'id',
             'first_name',
@@ -47,7 +47,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
     phones = PhoneSerializer(many=True, read_only=True)
     admissions = AdmissionSerializer(many=True, read_only=True)
-    persons = PersonSerializer(many=True, read_only=True)
+    persons = PersonalDataSerializer(many=True, read_only=True)
 
     class Meta:
         model = Submission
@@ -61,12 +61,12 @@ class SubmissionSerializer(serializers.ModelSerializer):
         ]
 
 
-class MasterSerializer(serializers.ModelSerializer):
+class PatientSerializer(serializers.ModelSerializer):
 
     submissions = SubmissionSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Master
+        model = Patient
         fields = [
             'id',
             'anon_patient_id',

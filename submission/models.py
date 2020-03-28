@@ -4,7 +4,7 @@ import uuid
 from django.db import models
 
 
-class Master(models.Model):
+class Patient(models.Model):
     """
     Central crosswalk model to connect all related records for a unique patient
     """
@@ -25,17 +25,17 @@ class Submission(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     identifier = models.CharField(max_length=50, null=False)
     id_type = models.CharField(max_length=50, null=False)
-    master = models.ForeignKey(Master, on_delete=models.CASCADE, null=True, related_name='submissions')
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, null=True, related_name='submissions')
 
     @property
-    def patient_id(self):
+    def patient_anon_id(self):
         return hashlib.md5(self.id_type.encode() + self.identifier.encode()).digest()[:12]
 
     def save(self, **kwargs):
         if not self.master:
-            patient_id = self.patient_id
-            master, _ = Master.objects.get_or_create(anon_patient_id=patient_id)
-            self.master = master
+            patient_id = self.patient_anon_id
+            patient, _ = Patient.objects.get_or_create(anon_patient_id=patient_id)
+            self.patient = patient
         super().save(**kwargs)
 
 
@@ -50,7 +50,7 @@ class Admission(models.Model):
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='admissions')
 
 
-class Person(models.Model):
+class PersonalData(models.Model):
 
     class GenderChoices(models.TextChoices):
         MALE = 'M', 'Male'
@@ -58,7 +58,7 @@ class Person(models.Model):
         OTHER = 'O', 'Other/Prefer not to disclose'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='persons')
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='personal_data')
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     gender = models.CharField(max_length=1, choices=GenderChoices.choices)

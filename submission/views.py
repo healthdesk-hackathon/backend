@@ -2,8 +2,8 @@ from django.shortcuts import render
 
 from rest_framework import viewsets, permissions, mixins
 
-from submission.models import Admission, Submission, Person, Phone
-from submission.serializers import AdmissionSerializer, SubmissionSerializer, PersonSerializer, PhoneSerializer
+from submission.models import Admission, Submission, PersonalData, Phone
+from submission.serializers import AdmissionSerializer, SubmissionSerializer, PersonalDataSerializer, PhoneSerializer
 
 
 class SubmissionViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, mixins.RetrieveModelMixin,
@@ -22,10 +22,10 @@ class AdmissionViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewset
     permission_classes = [permissions.AllowAny]
 
 
-class PersonViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
+class PersonalDataViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
 
-    queryset = Person.objects.all()
-    serializer_class = PersonSerializer
+    queryset = PersonalData.objects.all()
+    serializer_class = PersonalDataSerializer
 
     permission_classes = [permissions.AllowAny]
 

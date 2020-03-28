@@ -5,7 +5,7 @@ from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from submission.views import SubmissionViewSet, PhoneViewSet, PersonViewSet, AdmissionViewSet
+from submission.views import SubmissionViewSet, PhoneViewSet, PersonalDataViewSet, AdmissionViewSet
 
 app_name = 'v1'
 
@@ -28,7 +28,7 @@ router = DefaultRouter()
 
 router.register('submission', SubmissionViewSet, basename='submission')
 router.register('phone', PhoneViewSet, basename='phone')
-router.register('person', PersonViewSet, basename='person')
+router.register('personal-data', PersonalDataViewSet, basename='personal-data')
 router.register('admission', AdmissionViewSet, basename='admission')
 
 ################################
