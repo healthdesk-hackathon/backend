@@ -29,7 +29,7 @@ class Submission(models.Model):
 
     @property
     def patient_anon_id(self):
-        return hashlib.md5(self.id_type.encode() + self.identifier.encode()).digest()[:12]
+        return hashlib.md5(self.id_type.encode() + self.identifier.encode()).hexdigest()[:12]
 
     def save(self, **kwargs):
         if not self.patient:
@@ -80,7 +80,7 @@ class OverallWellbeing(models.Model):
     Overall wellbeing, as the patient assesses themselves
 
     Attributes:
-        overall_value: has a value 0 to 10 inclusive, representing how they feel 
+        overall_value: has a value 0 to 10 inclusive, representing how they feel
                         (0 awful, 10 amazing)
 
     Alternative is to reverse it:
@@ -117,7 +117,7 @@ class CommonSymptoms(models.Model):
     sore_throat = models.BooleanField(default=False, null=False)
     fever = models.BooleanField(default=False, null=False)
     runny_nose = models.BooleanField(default=False, null=False)
-    
+
 
 class GradedSymptoms(models.Model):
     """
@@ -158,7 +158,7 @@ class MedicalCenter(models.Model):
     """
     Available medical centers, from which a patient can choose.
 
-    This is as limited set of attributes, to reflect what is needed for a simple, 
+    This is as limited set of attributes, to reflect what is needed for a simple,
     GPS located submission.
 
     Addtional address information could be added in the future if necessary.
@@ -180,4 +180,4 @@ class ChosenMedicalCenter(models.Model):
     submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='chosen_medical_center')
 
     medical_center = models.ForeignKey(MedicalCenter, on_delete=models.CASCADE, related_name='medical_center')
-    
+
