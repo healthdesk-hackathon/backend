@@ -48,14 +48,6 @@ class OverallWellbeingViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, 
     permission_classes = [permissions.AllowAny]
 
 
-class OverallWellbeingViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
-
-    queryset = OverallWellbeing.objects.all()
-    serializer_class = OverallWellbeingSerializer
-
-    permission_classes = [permissions.AllowAny]
-
-
 class CommonSymptomsViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
 
     queryset = CommonSymptoms.objects.all()
