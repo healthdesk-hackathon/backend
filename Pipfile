@@ -25,7 +25,7 @@ packaging = "*"
 sentry-sdk = "*"
 gunicorn = "*"
 django-heroku = "*"
-django-admin-actions = "*"
+django-actions = {editable = true,git = "https://git@github.com/lukasvinclav/django-admin-actions.git",ref = "master"}
 
 [requires]
 python_version = "3.7"

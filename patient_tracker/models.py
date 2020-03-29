@@ -41,6 +41,9 @@ class BedAssignment(models.Model):
             bed.reason = None
         bed.save()
 
+    def __str__(self):
+        return f'{self.admission.patient.id} - {self.bed.id}'
+
 
 class Admission(models.Model):
     """
@@ -75,7 +78,7 @@ class Admission(models.Model):
 
         new_bed = bed_type.beds.available().first()
         if not new_bed:
-            raise Bed.DoesNotExist
+            raise Bed.DoesNotExist(f'There are no bed available for this type: {bed_type.name}')
         assignment = BedAssignment(admission=self, bed=new_bed)
         assignment.save()
         return new_bed
@@ -88,6 +91,9 @@ class Admission(models.Model):
     @property
     def is_discharged(self):
         return (self.discharge_events.first() is not None)
+
+    def __str__(self):
+        return f'{self.patient.anon_patient_id} - {str(self.id)[:12]}'
 
 
 class Discharge(models.Model):
@@ -123,7 +129,6 @@ class Bed(models.Model):
         CLEANING = 'cleaning', 'Cleaning'
         EQUIP_FAIL = 'equip fail', 'Equipment failure'
         UNAVAILABLE = 'unavailable', 'Unavailable'
-        OTHER = 'other', 'Other'
 
     class StateChoices(models.IntegerChoices):
         OUT_OF_SERVICE = 0, 'Out of service'
