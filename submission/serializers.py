@@ -103,7 +103,10 @@ class PhoneSerializer(serializers.ModelSerializer):
             'rank',
             'verified',
             'disabled',
-            'submission'
+            'submission',
+            'related_conditions',
+            'severity',
+            'is_admitted'
         ]
 
 
