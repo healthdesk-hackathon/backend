@@ -64,7 +64,7 @@ class Admission(models.Model):
         except BedAssignment.DoesNotExist:
             return None
 
-    # @transaction.atomic
+    @transaction.atomic
     def assign_bed(self, bed_type):
         current_bed = self.current_bed
 
