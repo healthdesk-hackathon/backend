@@ -4,6 +4,7 @@ import uuid
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+
 class Patient(models.Model):
     """
     Central crosswalk model to connect all related records for a unique patient
@@ -22,10 +23,17 @@ class Submission(models.Model):
     insurance number, phone number, email, etc
     """
 
+    class Severity(models.TextChoices):
+        MINOR = 'MIN', 'Minor'
+        MEDIUM = 'MED', 'Medium'
+        MAJOR = 'MAJ', 'Major'
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     identifier = models.CharField(max_length=50, null=False)
     id_type = models.CharField(max_length=50, null=False)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, blank=True, null=True, related_name='submissions')
+    is_admitted = models.BooleanField(null=True, blank=True)
+    severity = models.CharField(max_length=3, choices=Severity.choices, blank=True, null=True)
 
     @property
     def patient_anon_id(self):
@@ -37,8 +45,6 @@ class Submission(models.Model):
             patient, _ = Patient.objects.get_or_create(anon_patient_id=patient_id)
             self.patient = patient
         super().save(**kwargs)
-
-
 
 
 class PersonalData(models.Model):
@@ -93,6 +99,7 @@ class OverallWellbeing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='overall_wellbeing')
     overall_value = models.IntegerField(null=False, validators=[MaxValueValidator(10), MinValueValidator(0)])
+
 
 class CommonSymptoms(models.Model):
     """
