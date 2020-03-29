@@ -1,6 +1,7 @@
 import hashlib
 import uuid
 
+from django.conf import settings
 from django.db import transaction
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core import validators
@@ -41,6 +42,12 @@ class BedAssignment(models.Model):
             bed.reason = None
         bed.save()
 
+    def __str__(self):
+        return str(self.bed.id)
+
+    class Meta:
+        ordering = ['-assigned_at']
+
 
 class Admission(models.Model):
     """
@@ -75,7 +82,7 @@ class Admission(models.Model):
 
         new_bed = bed_type.beds.available().first()
         if not new_bed:
-            raise Bed.DoesNotExist
+            raise Bed.DoesNotExist(f'There are no bed available for this type: {bed_type.name}')
         assignment = BedAssignment(admission=self, bed=new_bed)
         assignment.save()
         return new_bed
@@ -88,6 +95,16 @@ class Admission(models.Model):
     @property
     def is_discharged(self):
         return (self.discharge_events.first() is not None)
+
+    def __str__(self):
+        return f'{self.patient.anon_patient_id} - {str(self.id)[:12]}'
+
+
+class HealthSnapshot(models.Model):
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='health_snapshots', on_delete=models.SET_NULL,
+                             null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class Discharge(models.Model):
@@ -123,7 +140,6 @@ class Bed(models.Model):
         CLEANING = 'cleaning', 'Cleaning'
         EQUIP_FAIL = 'equip fail', 'Equipment failure'
         UNAVAILABLE = 'unavailable', 'Unavailable'
-        OTHER = 'other', 'Other'
 
     class StateChoices(models.IntegerChoices):
         OUT_OF_SERVICE = 0, 'Out of service'
@@ -142,6 +158,13 @@ class Bed(models.Model):
             return self.get_queryset().filter(state=Bed.StateChoices.OUT_OF_SERVICE)
 
     objects = BedManager()
+
+    def delete(self, using=None, keep_parents=False):
+        if self.state == self.StateChoices.AVAILABLE:
+            raise ValidationError('You cannot delete a bed that is in use')
+        self.state = self.StateChoices.OUT_OF_SERVICE
+        self.reason = self.ReasonChoices.UNAVAILABLE
+        self.save()
 
     bed_type = models.ForeignKey('BedType', on_delete=models.CASCADE, null=False, related_name='beds')
 
@@ -180,6 +203,9 @@ class Bed(models.Model):
         if assignment:
             assignment.unassigned_at = tz.now()
             assignment.save()
+
+    def __str__(self):
+        return self.bed_type.name
 
 
 class BedType(models.Model):

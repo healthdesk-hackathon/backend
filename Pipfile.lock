@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "56a495cb145b2966006f2038998224d9eb337206b92def57c4b6f670d271b685"
+            "sha256": "b391afe4dd65b2153921cf38f35f8f92e5ca92cd8aa3ae2591b8403df1bc2e3b"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -73,12 +73,10 @@
             "index": "pypi",
             "version": "==3.0.4"
         },
-        "django-admin-actions": {
-            "hashes": [
-                "sha256:4a10875f31b24093a1067c49e880b74da2f4fcc39f8824db0690579b9df0904f"
-            ],
-            "index": "pypi",
-            "version": "==0.1.1"
+        "django-actions": {
+            "editable": true,
+            "git": "https://git@github.com/lukasvinclav/django-admin-actions.git",
+            "ref": "cdc6a82f62009b042a71dc26030c27cb67e28e60"
         },
         "django-cors-headers": {
             "hashes": [
