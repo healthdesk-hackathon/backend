@@ -65,6 +65,11 @@ class Admission(models.Model):
     admitted_at = models.DateTimeField(auto_now_add=True)
 
     @property
+    def current_severity(self):
+        snapshot = self.health_snapshots.first()
+        return snapshot.severity if snapshot else None
+
+    @property
     def current_bed(self):
         try:
             return self.assignments.filter(unassigned_at__isnull=True).latest('-assigned_at').bed
@@ -94,14 +99,17 @@ class Admission(models.Model):
 
     @property
     def is_discharged(self):
-        return (self.discharge_events.first() is not None)
+        return self.discharge_events.first() is not None
+
+    def discharged(self):
+        return self.is_discharged
+    discharged.boolean = True
 
     def __str__(self):
         return f'{self.patient.anon_patient_id} - {str(self.id)[:12]}'
 
 
 class HealthSnapshot(models.Model):
-
     class SeverityChoices(models.TextChoices):
         RED = 'RED', 'Red'
         YELLOW = 'YELLOW', 'Yellow'
@@ -110,27 +118,37 @@ class HealthSnapshot(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='health_snapshots', on_delete=models.SET_NULL,
                              null=True)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    admission = models.ForeignKey(Admission, on_delete=models.PROTECT, related_name='health_snapshot')
+
+    admission = models.ForeignKey(Admission, on_delete=models.PROTECT, related_name='health_snapshots')
     created_at = models.DateTimeField(auto_now_add=True)
 
-    blood_pressure_systolic = models.PositiveIntegerField()
-    blood_pressure_diastolic = models.PositiveIntegerField()
-    heart_rate = models.PositiveIntegerField()
-    breathing_rate = models.PositiveIntegerField()
-    temperature = models.FloatField()
-    oxygen_saturation = models.PositiveIntegerField()
+    blood_pressure_systolic = models.PositiveIntegerField(null=True, blank=True)
+    blood_pressure_diastolic = models.PositiveIntegerField(null=True, blank=True)
+    heart_rate = models.PositiveIntegerField(null=True, blank=True)
+    breathing_rate = models.PositiveIntegerField(null=True, blank=True)
+    temperature = models.FloatField(null=True, blank=True)
+    oxygen_saturation = models.PositiveIntegerField(null=True, blank=True)
 
-    gcs_eye = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)])
-    gcs_verbal = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
-    gcs_motor = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)])
+    gcs_eye = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)], null=True,
+                                               blank=True, verbose_name='GCS eye')
+    gcs_verbal = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], null=True,
+                                                  blank=True, verbose_name='GCS verbal')
+    gcs_motor = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)], null=True,
+                                                 blank=True, verbose_name='GCS motor')
 
-    observations = models.TextField()
+    observations = models.TextField(null=True, blank=True)
 
     severity = models.CharField(max_length=6, choices=SeverityChoices.choices)
 
     @property
     def gcs_total(self):
         return self.gcs_eye + self.gcs_verbal + self.gcs_motor
+
+    def __str__(self):
+        return f'{self.created_at} - {self.severity}'
+
+    class Meta:
+        ordering = ['-created_at']
 
 
 class Discharge(models.Model):
@@ -194,8 +212,7 @@ class Bed(models.Model):
 
     bed_type = models.ForeignKey('BedType', on_delete=models.CASCADE, null=False, related_name='beds')
 
-    admissions = models.ManyToManyField(Admission, through=BedAssignment, null=False,
-                                        related_name='assigned_beds')
+    admissions = models.ManyToManyField(Admission, through=BedAssignment, related_name='assigned_beds')
 
     reason = models.CharField(max_length=20, choices=ReasonChoices.choices, null=True, blank=True)
     state = models.PositiveSmallIntegerField(choices=StateChoices.choices, default=StateChoices.AVAILABLE)

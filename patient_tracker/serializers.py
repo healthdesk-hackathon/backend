@@ -17,12 +17,17 @@ class AdmissionSerializer(serializers.ModelSerializer):
 
 class HealthSnapshotSerializer(serializers.ModelSerializer):
 
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
+
     class Meta:
         model = HealthSnapshot
         extra_kwargs = {
             'created_at': { 'read_only': True }
         }
         fields = [
+            'user',
             'created_at',
             'admission',
 
