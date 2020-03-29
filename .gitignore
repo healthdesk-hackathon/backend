@@ -3,6 +3,7 @@
 
 .vscode/
 .idea/
+media/
 
 ### Django ###
 *.log

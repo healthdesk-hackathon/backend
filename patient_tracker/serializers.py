@@ -8,10 +8,14 @@ class AdmissionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Admission
+
+        extra_kwargs = {'local_barcode': {'read_only': True}}
+
         fields = [
             'id',
-            'local_barcode',
-            'patient'
+            'local_barcode_image',
+            'patient',
+            'admitted'
         ]
 
 

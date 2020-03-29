@@ -1,6 +1,16 @@
+import hashlib
+import os
+import string
 import uuid
+from io import BytesIO
+from random import choice
 
+from barcode import EAN13
+from barcode.writer import ImageWriter
 from django.conf import settings
+from django.core.files import File
+from django.core.files.images import ImageFile
+from django.core.files.storage import default_storage
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -55,10 +65,49 @@ class Admission(models.Model):
     record, the parent of this.
     """
 
+    class AdmissionManager(models.Manager):
+        def accepted(self):
+            return self.get_queryset().filter(admitted_at__isnull=False)
+
+        def rejected(self):
+            return self.get_queryset().filter(admitted_at__isnull=True)
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    local_barcode = models.CharField(max_length=150, unique=True, null=True)
+
+    local_barcode = models.CharField(max_length=13, unique=True, null=True)
+    local_barcode_image = models.ImageField(null=True)
+
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='patient', null=True)
-    admitted_at = models.DateTimeField(auto_now_add=True)
+    admitted_at = models.DateTimeField(null=True, default=None)
+    admitted = models.BooleanField()
+
+    def generate_barcode_image(self):
+
+        image = ImageFile(f'/tmp/{self.local_barcode}.jpeg')
+
+        with open(image.file, 'wb') as f:
+            EAN13(self.local_barcode, writer=ImageWriter()).write(f)
+
+
+        with open(image.file, 'rb') as f:
+            self.local_barcode_image.save(f'{self.local_barcode}.jpeg', ImageFile(f), save=False)
+
+        os.unlink(image.file)
+
+
+    def save(self, **kwargs):
+        if not self.local_barcode:
+            local_barcode = ''.join(choice(string.digits) for _ in range(13))
+            while Admission.objects.filter(local_barcode=local_barcode).exists():
+                local_barcode = ''.join(choice(string.digits) for _ in range(13))
+            self.local_barcode = local_barcode
+
+        if not self.admitted_at and self.admitted:
+            self.admitted_at = tz.now()
+
+        super().save(**kwargs)
+        self.generate_barcode_image()
+
 
     @property
     def current_severity(self):
