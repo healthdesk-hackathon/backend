@@ -62,3 +62,22 @@ class PatientTrackerTestCase(TestCase):
         self.assertEqual(icu.number_assigned(), 0)
         self.assertEqual(icu.number_available(), 1)
         self.assertEqual(icu.number_out_of_service(), 1)
+
+    def test_discharge(self):
+
+        admission = Admission.objects.create()
+        icu = BedType.objects.filter(name='Intensive Care Unit').first()
+        inter = BedType.objects.filter(name='Intermediate Care').first()
+        
+        assigned_bed = admission.assign_bed(bed_type=icu)
+        assigned_bed.save()
+        self.assertEqual(icu.number_assigned(), 1)
+        self.assertEqual(icu.number_available(), 1)
+        self.assertEqual(icu.number_out_of_service(), 0)
+
+        admission.discharge()
+        # We leave the bed, taking it out of service
+        self.assertTrue(admission.is_discharged())
+        self.assertEqual(icu.number_assigned(), 0)
+        self.assertEqual(icu.number_available(), 1)
+        self.assertEqual(icu.number_out_of_service(), 1)

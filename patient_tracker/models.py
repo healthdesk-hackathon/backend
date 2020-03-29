@@ -46,6 +46,13 @@ class Admission(models.Model):
         new_bed.save()
         return new_bed
 
+    def discharge(self):
+        res = Discharge(admission=self)
+        res.save()
+        return res
+
+    def is_discharged(self):
+        return (self.discharge_events.first() is not None)
 
 class Discharge(models.Model):
     """
@@ -54,8 +61,22 @@ class Discharge(models.Model):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    # submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='admissions', null=True)
+    admission = models.ForeignKey(Admission, on_delete=models.CASCADE, null=False, related_name='discharge_events')
     discharged_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self):
+        """override save to handle the (re)assignment of a patient to a bed
+        """
+        with transaction.atomic():
+            # Complete the discharge save
+            super(Discharge, self).save()
+
+            # Does the current admission have an assigned bed already?
+            bed = self.admission.current_bed()
+            if bed:
+                # Release the current bed and assign the new one
+                bed.leave_bed()
+            
 
 
 class BedType(models.Model):
@@ -135,14 +156,16 @@ class AssignedBed(models.Model):
             if not self.bed_type.is_available():
                 raise ObjectDoesNotExist('Bed type is not available')
 
+            assigned_bed = self.admission.current_bed()
             # Does the current admission have an assigned bed already?
-            if self.id and self.admission.current_bed():
+            if self.id and assigned_bed and assigned_bed.id != self.id:
                 # Release the current bed and assign the new one
                 self.leave_bed()
             
             # The bed assignment goes ahead through the creation of this record
             super(AssignedBed, self).save()
     
+
     def leave_bed(self):
         """The patient is leaving the bed. The current assignment to this patient can be removed.
         
@@ -153,7 +176,7 @@ class AssignedBed(models.Model):
 
             assigned_bed = self.admission.current_bed()
 
-            if not assigned_bed or assigned_bed.id == self.id:
+            if not assigned_bed:
                 return  
 
             bed_type = assigned_bed.bed_type
