@@ -102,9 +102,35 @@ class Admission(models.Model):
 
 class HealthSnapshot(models.Model):
 
+    class SeverityChoices(models.TextChoices):
+        RED = 'RED', 'Red'
+        YELLOW = 'YELLOW', 'Yellow'
+        GREEN = 'GREEN', 'Green'
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='health_snapshots', on_delete=models.SET_NULL,
                              null=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    admission = models.ForeignKey(Admission, on_delete=models.PROTECT, related_name='health_snapshot')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    blood_pressure_systolic = models.PositiveIntegerField()
+    blood_pressure_diastolic = models.PositiveIntegerField()
+    heart_rate = models.PositiveIntegerField()
+    breathing_rate = models.PositiveIntegerField()
+    temperature = models.FloatField()
+    oxygen_saturation = models.PositiveIntegerField()
+
+    gcs_eye = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)])
+    gcs_verbal = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    gcs_motor = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)])
+
+    observations = models.TextField()
+
+    severity = models.CharField(max_length=6, choices=SeverityChoices.choices)
+
+    @property
+    def gcs_total(self):
+        return self.gcs_eye + self.gcs_verbal + self.gcs_motor
 
 
 class Discharge(models.Model):
