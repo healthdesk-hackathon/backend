@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 
 from patient_tracker.models import Admission, Bed, BedType, BedAssignment, HealthSnapshot
 from project.admin import admin_site
-from submission.models import Patient, Submission
+from submission.models import * #, #Patient, Submission
 from django.utils.translation import gettext_lazy as _
 
 
@@ -104,21 +104,10 @@ class BedsAdmin(ActionsModelAdmin):
     set_to_cleaning.url_path = 'set-cleaning'
 
 
-class AdmissionInline(admin.TabularInline):
-    model = Admission
-
 
 class SubmissionInline(admin.TabularInline):
     model = Submission
     show_change_link = True
-
-
-@admin.register(Patient, site=admin_site)
-class PatientAdmin(admin.ModelAdmin):
-    inlines = [
-        AdmissionInline,
-        SubmissionInline
-    ]
 
 
 class AssignmentInline(admin.TabularInline):
@@ -170,6 +159,7 @@ class AdmissionAdmin(ActionsModelAdmin):
         super().__init__(*args, **kwargs)
 
         actions_details = (
+            'view_triage_submission',
             'discharge_patient',
         )
 
@@ -242,6 +232,17 @@ class AdmissionAdmin(ActionsModelAdmin):
     discharge_patient.short_description = 'Discharge'
 
 
+    def view_triage_submission(self, request, pk):
+        admission = Admission.objects.get(pk=pk)
+        submission = admission.patient.submissions.first()
+        return redirect(
+            reverse_lazy('admin:submission_submission_change', kwargs={'object_id': submission.pk}))
+
+    view_triage_submission.short_description = _('Admission Info')
+    view_triage_submission.url_path = 'view-triage-submission'
+
+
+
 class HealthSnapshotProxy(HealthSnapshot):
     class Meta:
         verbose_name = 'Health Snapshot'
@@ -287,3 +288,57 @@ class HealthSnapshotAdmin(ActionsModelAdmin):
 
     go_to_admission.short_description = _('Go to admission')
     go_to_admission.url_path = 'go-to-admission'
+
+
+"""
+
+Handle the triage submission view
+
+"""
+
+class PersonalDataInline(admin.TabularInline):
+    model = PersonalData
+
+
+class PhoneInline(admin.TabularInline):
+    model = Phone
+
+
+class OverallWellbeingInline(admin.TabularInline):
+    model = OverallWellbeing
+
+
+class CommonSymptomsInline(admin.TabularInline):
+    model = CommonSymptoms
+
+
+class GradedSymptomsInline(admin.TabularInline):
+    model = GradedSymptoms
+
+
+class RelatedConditionsInline(admin.TabularInline):
+    model = RelatedConditions
+
+
+@admin.register(Submission, site=admin_site)
+class SubmissionAdmin(admin.ModelAdmin):
+
+    inlines = [
+        OverallWellbeingInline,
+        CommonSymptomsInline,
+        RelatedConditionsInline,
+        PersonalDataInline,
+    ]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+
+
