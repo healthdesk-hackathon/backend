@@ -1,16 +1,12 @@
-import hashlib
 import os
 import string
 import uuid
-from io import BytesIO
 from random import choice
 
 from barcode import EAN13
 from barcode.writer import ImageWriter
 from django.conf import settings
-from django.core.files import File
 from django.core.files.images import ImageFile
-from django.core.files.storage import default_storage
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -79,7 +75,7 @@ class Admission(models.Model):
 
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='patient', null=True)
     admitted_at = models.DateTimeField(null=True, default=None)
-    admitted = models.BooleanField()
+    admitted = models.BooleanField(default=True)
 
     def generate_barcode_image(self):
 
@@ -88,12 +84,10 @@ class Admission(models.Model):
         with open(image.file, 'wb') as f:
             EAN13(self.local_barcode, writer=ImageWriter()).write(f)
 
-
         with open(image.file, 'rb') as f:
             self.local_barcode_image.save(f'{self.local_barcode}.jpeg', ImageFile(f), save=False)
 
         os.unlink(image.file)
-
 
     def save(self, **kwargs):
         if not self.local_barcode:
@@ -107,7 +101,6 @@ class Admission(models.Model):
 
         super().save(**kwargs)
         self.generate_barcode_image()
-
 
     @property
     def current_severity(self):

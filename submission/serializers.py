@@ -91,7 +91,6 @@ class PersonalDataSerializer(serializers.ModelSerializer):
         ]
 
 
-
 class PhoneSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -125,7 +124,8 @@ class SubmissionSerializer(serializers.ModelSerializer):
             'persons',
             'common_symptoms',
             'graded_symptoms',
-            'related_conditions'
+            'related_conditions',
+            'patient'
         ]
 
 
