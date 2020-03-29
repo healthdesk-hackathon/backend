@@ -50,8 +50,6 @@ class Submission(models.Model):
         super().save(**kwargs)
 
 
-
-
 class PersonalData(models.Model):
     class GenderChoices(models.TextChoices):
         MALE = 'M', 'Male'
@@ -104,6 +102,7 @@ class OverallWellbeing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='overall_wellbeing')
     overall_value = models.IntegerField(null=False, validators=[MaxValueValidator(10), MinValueValidator(0)])
+
 
 class CommonSymptoms(models.Model):
     """

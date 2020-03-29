@@ -12,15 +12,12 @@ from django.core.files import File
 from django.core.files.images import ImageFile
 from django.core.files.storage import default_storage
 from django.db import transaction
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.core import validators
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
 from django.utils import timezone as tz
 
-from submission.models import Submission, Patient
+from submission.models import Patient
 
 
 def prevent_update(pk):
@@ -162,6 +159,7 @@ class HealthSnapshot(models.Model):
         RED = 'RED', 'Red'
         YELLOW = 'YELLOW', 'Yellow'
         GREEN = 'GREEN', 'Green'
+        WHITE = 'WHITE', 'White'
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='health_snapshots', on_delete=models.SET_NULL,
                              null=True)
