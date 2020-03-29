@@ -26,6 +26,8 @@ sentry-sdk = "*"
 gunicorn = "*"
 django-heroku = "*"
 django-actions = {editable = true,git = "https://git@github.com/lukasvinclav/django-admin-actions.git",ref = "master"}
+python-barcode = "*"
+pillow = "*"
 
 [requires]
 python_version = "3.7"
