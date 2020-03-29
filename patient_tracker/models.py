@@ -144,7 +144,8 @@ class Admission(models.Model):
     discharged.boolean = True
 
     def __str__(self):
-        return f'{self.patient.anon_patient_id} - {str(self.id)[:12]}'
+
+        return f'{self.patient.anon_patient_id or ""} - {str(self.id)[:12]}'
 
 
 class HealthSnapshot(models.Model):
@@ -181,10 +182,12 @@ class HealthSnapshot(models.Model):
 
     @property
     def gcs_total(self):
+        if self.gcs_eye is None or self.gcs_verbal is None or self.gcs_motor is None:
+            return 0 
         return self.gcs_eye + self.gcs_verbal + self.gcs_motor
 
     def __str__(self):
-        return f'{self.created_at} - {self.severity}'
+        return f'{self.created_at} - {self.severity or ""}'
 
     class Meta:
         ordering = ['-created_at']
