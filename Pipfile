@@ -25,6 +25,7 @@ packaging = "*"
 sentry-sdk = "*"
 gunicorn = "*"
 django-heroku = "*"
+django-admin-actions = "*"
 
 [requires]
 python_version = "3.7"

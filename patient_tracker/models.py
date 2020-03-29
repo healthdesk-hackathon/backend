@@ -10,7 +10,7 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils import timezone as tz
 
-from submission.models import Submission
+from submission.models import Submission, Patient
 
 
 def prevent_update(pk):
@@ -54,7 +54,7 @@ class Admission(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     local_barcode = models.CharField(max_length=150, unique=True, null=True)
-    #  submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='admissions', null=True)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='patient', null=True)
     admitted_at = models.DateTimeField(auto_now_add=True)
 
     @property
@@ -143,7 +143,6 @@ class Bed(models.Model):
 
     objects = BedManager()
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     bed_type = models.ForeignKey('BedType', on_delete=models.CASCADE, null=False, related_name='beds')
 
     admissions = models.ManyToManyField(Admission, through=BedAssignment, null=False,
@@ -154,9 +153,9 @@ class Bed(models.Model):
 
     @property
     def current_admission(self):
-        assignement = self.assignments.filter(unassigned_at__isnull=True).first()
-        if assignement:
-            return assignement.admission
+        assignment = self.assignments.filter(unassigned_at__isnull=True).first()
+        if assignment:
+            return assignment.admission
         return None
 
     def clean(self):
@@ -224,3 +223,6 @@ class BedType(models.Model):
         """Check if this bed type is available for a new patient
         """
         return self.number_available > 0
+
+    def __str__(self):
+        return self.name
