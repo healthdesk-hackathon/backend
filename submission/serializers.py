@@ -104,9 +104,6 @@ class PhoneSerializer(serializers.ModelSerializer):
             'verified',
             'disabled',
             'submission',
-            'related_conditions',
-            'severity',
-            'is_admitted'
         ]
 
 
