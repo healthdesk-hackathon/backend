@@ -163,15 +163,21 @@ class AdmissionAdmin(ActionsModelAdmin):
             'discharge_patient',
         )
 
-        for bed_type in BedType.objects.all():
-            action_slug = '-'.join(bed_type.name.lower().split(' '))
-            action = lambda request, pk, bed_type=bed_type: self.bed_type_dispatch_action(request, pk, bed_type)
-            setattr(action, 'short_description', f'Assign to bed: {bed_type.name}')
-            setattr(action, 'url_path', f'set-{action_slug}')
+        # This blocks a migration, so put in try... except
+        try:
+            for bed_type in BedType.objects.all():
+                action_slug = '-'.join(bed_type.name.lower().split(' '))
+                action = lambda request, pk, bed_type=bed_type: self.bed_type_dispatch_action(request, pk, bed_type)
+                setattr(action, 'short_description', f'Assign to bed: {bed_type.name}')
+                setattr(action, 'url_path', f'set-{action_slug}')
 
-            action_name = f'assign_to_{action_slug.replace("-", "_")}'
-            setattr(self, action_name, action)
-            actions_details += (action_name,)
+                action_name = f'assign_to_{action_slug.replace("-", "_")}'
+                setattr(self, action_name, action)
+                actions_details += (action_name,)
+        
+        except django.db.utils.ProgrammingError:
+            pass
+
 
         setattr(self, 'actions_detail', actions_details)
 
