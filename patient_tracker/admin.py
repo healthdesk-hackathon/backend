@@ -1,10 +1,12 @@
 from admin_actions.admin import ActionsModelAdmin
 from django.contrib import admin, messages
+from django.core.exceptions import ValidationError
 
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 
 from patient_tracker.models import Admission, Bed, BedType, BedAssignment
+from project.admin import admin_site
 from submission.models import Patient, Submission
 from django.utils.translation import gettext_lazy as _
 
@@ -13,12 +15,19 @@ class AdmissionInline(admin.TabularInline):
     model = Admission
 
 
-@admin.register(BedType)
+@admin.register(BedType, site=admin_site)
 class BedTypeAdmin(admin.ModelAdmin):
-    pass
+
+    list_display = [
+        'name',
+        'total',
+        'number_available',
+        'number_assigned',
+        'number_out_of_service',
+    ]
 
 
-@admin.register(Bed)
+@admin.register(Bed, site=admin_site)
 class BedsAdmin(ActionsModelAdmin):
     actions_row = (
         'set_to_available',
@@ -44,6 +53,18 @@ class BedsAdmin(ActionsModelAdmin):
         'reason',
         'bed_type__name'
     ]
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+    # def delete_model(self, request, obj):
+    #     try:
+    #         super().delete_model(request, obj)
+    #     except ValidationError as e:
+    #         messages.error(request, str(e))
 
     def set_to_available(self, request, pk):
         bed = Bed.objects.get(pk=pk)
@@ -90,7 +111,7 @@ class SubmissionInline(admin.TabularInline):
     show_change_link = True
 
 
-@admin.register(Patient)
+@admin.register(Patient, site=admin_site)
 class PatientAdmin(admin.ModelAdmin):
 
     inlines = [
@@ -101,17 +122,28 @@ class PatientAdmin(admin.ModelAdmin):
 
 class AssignmentInline(admin.TabularInline):
     model = BedAssignment
-
     extra = 0
 
+    can_delete = False
 
-@admin.register(Admission)
+    fields = [
+        'bed',
+        'assigned_at',
+        'unassigned_at'
+    ]
+
+    readonly_fields = fields
+
+
+@admin.register(Admission, site=admin_site)
 class AdmissionAdmin(ActionsModelAdmin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        actions_details = ()
+        actions_details = (
+            'discharge_patient',
+        )
 
         for bed_type in BedType.objects.all():
 
@@ -126,9 +158,41 @@ class AdmissionAdmin(ActionsModelAdmin):
 
         setattr(self, 'actions_detail', actions_details)
 
+    fields = [
+        'local_barcode',
+    ]
+
+    search_fields = [
+        'local_barcode',
+    ]
+
+    readonly_fields = fields
+
     inlines = [
         AssignmentInline
     ]
+
+    date_hierarchy = 'admitted_at'
+
+    list_display = [
+        'local_barcode',
+        'patient',
+        'admitted_at',
+        'is_discharged'
+    ]
+
+    list_filter = [
+        'admitted_at'
+    ]
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
 
     def bed_type_dispatch_action(self, request, pk, bed_type):
         admission = Admission.objects.get(pk=pk)
@@ -138,3 +202,11 @@ class AdmissionAdmin(ActionsModelAdmin):
         except Bed.DoesNotExist as e:
             messages.error(request, str(e))
         return redirect(reverse_lazy('admin:patient_tracker_admission_changelist'))
+
+    def discharge_patient(self, request, pk):
+        admission = Admission.objects.get(pk=pk)
+        admission.discharge()
+        messages.success(request, 'Person has been successfully discharged')
+        return redirect(reverse_lazy('admin:patient_tracker_admission_changelist'))
+    discharge_patient.url_path = 'discharge'
+    discharge_patient.short_description = 'Discharge'

@@ -1,6 +1,7 @@
 import hashlib
 import uuid
 
+from django.conf import settings
 from django.db import transaction
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core import validators
@@ -42,7 +43,10 @@ class BedAssignment(models.Model):
         bed.save()
 
     def __str__(self):
-        return f'{self.admission.patient.id} - {self.bed.id}'
+        return str(self.bed.id)
+
+    class Meta:
+        ordering = ['-assigned_at']
 
 
 class Admission(models.Model):
@@ -94,6 +98,13 @@ class Admission(models.Model):
 
     def __str__(self):
         return f'{self.patient.anon_patient_id} - {str(self.id)[:12]}'
+
+
+class HealthSnapshot(models.Model):
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='health_snapshots', on_delete=models.SET_NULL,
+                             null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class Discharge(models.Model):
@@ -148,6 +159,13 @@ class Bed(models.Model):
 
     objects = BedManager()
 
+    def delete(self, using=None, keep_parents=False):
+        if self.state == self.StateChoices.AVAILABLE:
+            raise ValidationError('You cannot delete a bed that is in use')
+        self.state = self.StateChoices.OUT_OF_SERVICE
+        self.reason = self.ReasonChoices.UNAVAILABLE
+        self.save()
+
     bed_type = models.ForeignKey('BedType', on_delete=models.CASCADE, null=False, related_name='beds')
 
     admissions = models.ManyToManyField(Admission, through=BedAssignment, null=False,
@@ -185,6 +203,9 @@ class Bed(models.Model):
         if assignment:
             assignment.unassigned_at = tz.now()
             assignment.save()
+
+    def __str__(self):
+        return self.bed_type.name
 
 
 class BedType(models.Model):
