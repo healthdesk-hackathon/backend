@@ -26,10 +26,17 @@ class Submission(models.Model):
     insurance number, phone number, email, etc
     """
 
+    class Severity(models.TextChoices):
+        MINOR = 'MIN', 'Minor'
+        MEDIUM = 'MED', 'Medium'
+        MAJOR = 'MAJ', 'Major'
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     identifier = models.CharField(max_length=50, null=False)
     id_type = models.CharField(max_length=50, null=False)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, blank=True, null=True, related_name='submissions')
+    is_admitted = models.BooleanField(null=True, blank=True)
+    severity = models.CharField(max_length=3, choices=Severity.choices, blank=True, null=True)
 
     @property
     def patient_anon_id(self):
