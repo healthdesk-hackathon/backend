@@ -175,7 +175,7 @@ class AdmissionAdmin(ActionsModelAdmin):
                 setattr(self, action_name, action)
                 actions_details += (action_name,)
         
-        except django.db.utils.ProgrammingError:
+        except Exception:
             pass
 
 
