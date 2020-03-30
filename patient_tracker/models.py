@@ -73,6 +73,7 @@ class Admission(models.Model):
     local_barcode = models.CharField(max_length=13, unique=True, null=True)
     local_barcode_image = models.ImageField(null=True)
 
+    # TODO: remove null=True below or fix the __str__ method
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='patient', null=True)
     admitted_at = models.DateTimeField(null=True, default=None)
     admitted = models.BooleanField(default=True)
@@ -183,7 +184,7 @@ class HealthSnapshot(models.Model):
     @property
     def gcs_total(self):
         if self.gcs_eye is None or self.gcs_verbal is None or self.gcs_motor is None:
-            return 0 
+            return 0
         return self.gcs_eye + self.gcs_verbal + self.gcs_motor
 
     def __str__(self):
