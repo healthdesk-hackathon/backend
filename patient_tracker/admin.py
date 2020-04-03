@@ -1,6 +1,5 @@
 from admin_actions.admin import ActionsModelAdmin
 from django.contrib import admin, messages
-from django.core.exceptions import ValidationError
 
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
@@ -57,12 +56,6 @@ class BedsAdmin(ActionsModelAdmin):
 
     def has_add_permission(self, request):
         return False
-
-    # def delete_model(self, request, obj):
-    #     try:
-    #         super().delete_model(request, obj)
-    #     except ValidationError as e:
-    #         messages.error(request, str(e))
 
     def set_to_available(self, request, pk):
         bed = Bed.objects.get(pk=pk)
