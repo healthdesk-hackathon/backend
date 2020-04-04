@@ -12,6 +12,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Count, F, Avg, Subquery, OuterRef, Max
+from django.forms import model_to_dict
 from django.utils import timezone as tz
 
 
@@ -165,6 +166,14 @@ class Admission(models.Model):
     def current_severity(self):
         snapshot = self.health_snapshots.first()
         return snapshot.severity if snapshot else None
+
+    @property
+    def flattened_snapshot(self):
+        result = {}
+        for ss in self.health_snapshots.all().reverse():
+            d = model_to_dict(ss, exclude=['admission'])
+            result.update({k: v for k, v in d.items() if v != "" and v is not None})
+        return result
 
     @property
     def current_bed(self):
