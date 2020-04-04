@@ -2,7 +2,8 @@ from django.contrib import admin
 
 from django.db import models
 from submission.models import Submission, PersonalData, Phone, OverallWellbeing, CommonSymptoms, \
-    GradedSymptoms, RelatedConditions, ChosenMedicalCenter, MedicalCenter, InitialHealthSnapshot
+    GradedSymptoms, RelatedConditions, ChosenMedicalCenter, MedicalCenter, InitialHealthSnapshot, \
+    NextOfKinContact
 
 
 class PersonalDataInline(admin.TabularInline):
@@ -33,6 +34,10 @@ class ChosenMedicalCenterInline(admin.TabularInline):
     model = ChosenMedicalCenter
 
 
+class NextOfKinContactInline(admin.TabularInline):
+    model = NextOfKinContact
+
+
 @admin.register(Submission)
 class SubmissionAdmin(admin.ModelAdmin):
 
@@ -43,7 +48,8 @@ class SubmissionAdmin(admin.ModelAdmin):
         CommonSymptomsInline,
         GradedSymptomsInline,
         RelatedConditionsInline,
-        ChosenMedicalCenterInline
+        ChosenMedicalCenterInline,
+        NextOfKinContactInline
     ]
 
 

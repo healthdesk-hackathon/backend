@@ -7,7 +7,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from submission.views import SubmissionViewSet, PhoneViewSet, PersonalDataViewSet, \
     OverallWellbeingViewSet, CommonSymptomsViewSet, GradedSymptomsViewSet, RelatedConditionsViewSet, \
-    MedicalCenterViewSet, InitialHealthSnapshotViewSet
+    MedicalCenterViewSet, InitialHealthSnapshotViewSet, NextOfKinContactViewSet
 
 from patient_tracker.views import AdmissionViewSet, HealthSnapshotViewSet, BedViewSet, BedTypeViewSet
 
@@ -47,6 +47,8 @@ router.register('overall-wellbeing', OverallWellbeingViewSet, basename='overall-
 router.register('common-symptoms', CommonSymptomsViewSet, basename='common-symptoms')
 router.register('graded-symptoms', GradedSymptomsViewSet, basename='graded-symptoms')
 router.register('related-conditions', RelatedConditionsViewSet, basename='related-conditions')
+
+router.register('next-of-kin-contacts', NextOfKinContactViewSet, basename='next-of-kin-contacts')
 
 ################################
 
