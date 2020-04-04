@@ -9,7 +9,9 @@ from submission.views import SubmissionViewSet, PhoneViewSet, PersonalDataViewSe
     OverallWellbeingViewSet, CommonSymptomsViewSet, GradedSymptomsViewSet, RelatedConditionsViewSet, \
     InitialHealthSnapshotViewSet
 
-from patient_tracker.views import AdmissionViewSet
+from patient_tracker.views import AdmissionViewSet, HealthSnapshotViewSet, BedViewSet, BedTypeViewSet, \
+    MedicalCenterViewSet, InitialHealthSnapshotViewSet
+
 
 app_name = 'v1'
 
@@ -34,6 +36,10 @@ router.register('submission', SubmissionViewSet, basename='submission')
 router.register('phone', PhoneViewSet, basename='phone')
 router.register('personal-data', PersonalDataViewSet, basename='personal-data')
 router.register('admission', AdmissionViewSet, basename='admission')
+router.register('medical-center', MedicalCenterViewSet, basename='medical-center')
+
+router.register('bed', BedViewSet, basename='bed')
+router.register('bed-type', BedTypeViewSet, basename='bed-type')
 router.register('initial-health-snapshot', InitialHealthSnapshotViewSet, basename='health-snapshot')
 
 

@@ -1,11 +1,10 @@
 from rest_framework import serializers
 
 from submission.models import Patient, Submission, PersonalData, Phone, OverallWellbeing, CommonSymptoms, \
-    GradedSymptoms, RelatedConditions, InitialHealthSnapshot
+    GradedSymptoms, RelatedConditions, MedicalCenter, InitialHealthSnapshot
 
 
 class OverallWellbeingSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = OverallWellbeing
         fields = [
@@ -16,7 +15,6 @@ class OverallWellbeingSerializer(serializers.ModelSerializer):
 
 
 class CommonSymptomsSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = CommonSymptoms
         fields = [
@@ -56,7 +54,6 @@ class GradedSymptomsSerializer(serializers.ModelSerializer):
 
 
 class RelatedConditionsSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = RelatedConditions
         fields = [
@@ -78,7 +75,6 @@ class RelatedConditionsSerializer(serializers.ModelSerializer):
 
 
 class PersonalDataSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = PersonalData
         fields = [
@@ -92,7 +88,6 @@ class PersonalDataSerializer(serializers.ModelSerializer):
 
 
 class PhoneSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Phone
         fields = [
@@ -107,7 +102,6 @@ class PhoneSerializer(serializers.ModelSerializer):
 
 
 class SubmissionSerializer(serializers.ModelSerializer):
-
     phones = PhoneSerializer(many=True, read_only=True)
     persons = PersonalDataSerializer(many=True, read_only=True)
     common_symptoms = CommonSymptomsSerializer(read_only=True)
@@ -130,7 +124,6 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
 
 class PatientSerializer(serializers.ModelSerializer):
-
     submissions = SubmissionSerializer(many=True, read_only=True)
 
     class Meta:
@@ -139,6 +132,18 @@ class PatientSerializer(serializers.ModelSerializer):
             'id',
             'anon_patient_id',
             'submissions'
+        ]
+
+
+class MedicalCenterSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = MedicalCenter,
+        fields = [
+            'id',
+            'name',
+            'latitude',
+            'longitude',
         ]
 
 class InitialHealthSnapshotSerializer(serializers.ModelSerializer):
