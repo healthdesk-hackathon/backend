@@ -306,26 +306,45 @@ Handle the triage submission view
 
 class PersonalDataInline(admin.TabularInline):
     model = PersonalData
+    extra = 1
+    min_num = 0
+    max_num = 1
 
 
 class PhoneInline(admin.TabularInline):
     model = Phone
+    extra = 1
+    min_num = 0
+    max_num = 1
 
 
 class OverallWellbeingInline(admin.TabularInline):
     model = OverallWellbeing
+    extra = 1
 
 
 class CommonSymptomsInline(admin.TabularInline):
     model = CommonSymptoms
+    extra = 1
 
 
 class GradedSymptomsInline(admin.TabularInline):
     model = GradedSymptoms
+    extra = 1
 
 
 class RelatedConditionsInline(admin.TabularInline):
     model = RelatedConditions
+    extra = 1
+    min_num = 0
+    max_num = 1
+
+
+class PatientPhotoInline(admin.TabularInline):
+    model = PatientPhoto
+    extra = 1
+    min_num = 0
+    max_num = 1
 
 
 @admin.register(Submission, site=admin_site)
@@ -336,16 +355,17 @@ class SubmissionAdmin(admin.ModelAdmin):
         CommonSymptomsInline,
         RelatedConditionsInline,
         PersonalDataInline,
+        PatientPhotoInline,
     ]
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
     def has_delete_permission(self, request, obj=None):
         return False
 
     def has_change_permission(self, request, obj=None):
-        return False
+        return True
 
 
 
