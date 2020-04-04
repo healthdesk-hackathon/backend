@@ -250,3 +250,10 @@ class InitialHealthSnapshot(models.Model):
             return 0
         return self.gcs_eye + self.gcs_verbal + self.gcs_motor
 
+
+class PatientPhoto(models.Model):
+    image_path = 'patient_photos'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='patient_photo')
+    photo = models.ImageField(upload_to=image_path)

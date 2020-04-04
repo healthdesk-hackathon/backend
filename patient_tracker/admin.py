@@ -4,7 +4,7 @@ from django.contrib import admin, messages
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 
-from patient_tracker.models import Admission, Bed, BedType, BedAssignment, HealthSnapshot, Discharge, Deceased
+from patient_tracker.models import Admission, Bed, BedType, BedAssignment, HealthSnapshot, Discharge, Deceased, HealthSnapshotFile
 from project.admin import admin_site
 from submission.models import *  # , #Patient, Submission
 from django.utils.translation import gettext_lazy as _
@@ -256,6 +256,11 @@ class HealthSnapshotProxy(HealthSnapshot):
         proxy = True
 
 
+class HealthSnapshotFileInline(admin.TabularInline):
+    model = HealthSnapshotFile
+    extra = 1
+
+
 @admin.register(HealthSnapshotProxy, site=admin_site)
 class HealthSnapshotAdmin(ActionsModelAdmin):
     actions_row = ('go_to_admission',)
@@ -277,6 +282,10 @@ class HealthSnapshotAdmin(ActionsModelAdmin):
         'gcs_total'
     )
 
+    inlines = [
+        HealthSnapshotFileInline,
+    ]
+
     list_display_links = []
 
     def has_add_permission(self, request):
@@ -286,7 +295,7 @@ class HealthSnapshotAdmin(ActionsModelAdmin):
         return False
 
     def has_change_permission(self, request, obj=None):
-        return False
+        return True
 
     def go_to_admission(self, request, pk):
         snapshot = HealthSnapshot.objects.get(pk=pk)
@@ -306,26 +315,45 @@ Handle the triage submission view
 
 class PersonalDataInline(admin.TabularInline):
     model = PersonalData
+    extra = 1
+    min_num = 0
+    max_num = 1
 
 
 class PhoneInline(admin.TabularInline):
     model = Phone
+    extra = 1
+    min_num = 0
+    max_num = 1
 
 
 class OverallWellbeingInline(admin.TabularInline):
     model = OverallWellbeing
+    extra = 1
 
 
 class CommonSymptomsInline(admin.TabularInline):
     model = CommonSymptoms
+    extra = 1
 
 
 class GradedSymptomsInline(admin.TabularInline):
     model = GradedSymptoms
+    extra = 1
 
 
 class RelatedConditionsInline(admin.TabularInline):
     model = RelatedConditions
+    extra = 1
+    min_num = 0
+    max_num = 1
+
+
+class PatientPhotoInline(admin.TabularInline):
+    model = PatientPhoto
+    extra = 1
+    min_num = 0
+    max_num = 1
 
 
 @admin.register(Submission, site=admin_site)
@@ -336,16 +364,17 @@ class SubmissionAdmin(admin.ModelAdmin):
         CommonSymptomsInline,
         RelatedConditionsInline,
         PersonalDataInline,
+        PatientPhotoInline,
     ]
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
     def has_delete_permission(self, request, obj=None):
         return False
 
     def has_change_permission(self, request, obj=None):
-        return False
+        return True
 
 
 
