@@ -63,14 +63,12 @@ class RelatedConditionsViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin,
     permission_classes = [permissions.AllowAny]
 
 
-
 class MedicalCenterViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
 
     queryset = MedicalCenter.objects.all()
     serializer_class = MedicalCenterSerializer
-    
+
     permission_classes = [permissions.AllowAny]
-    
 
 
 class InitialHealthSnapshotViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
