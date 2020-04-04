@@ -6,9 +6,10 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from submission.views import SubmissionViewSet, PhoneViewSet, PersonalDataViewSet, \
-    OverallWellbeingViewSet, CommonSymptomsViewSet, GradedSymptomsViewSet, RelatedConditionsViewSet
+    OverallWellbeingViewSet, CommonSymptomsViewSet, GradedSymptomsViewSet, RelatedConditionsViewSet, \
+    InitialHealthSnapshotViewSet
 
-from patient_tracker.views import AdmissionViewSet, HealthSnapshotViewSet
+from patient_tracker.views import AdmissionViewSet
 
 app_name = 'v1'
 
@@ -33,7 +34,7 @@ router.register('submission', SubmissionViewSet, basename='submission')
 router.register('phone', PhoneViewSet, basename='phone')
 router.register('personal-data', PersonalDataViewSet, basename='personal-data')
 router.register('admission', AdmissionViewSet, basename='admission')
-router.register('health-snapshot', HealthSnapshotViewSet, basename='health-snapshot')
+router.register('initial-health-snapshot', InitialHealthSnapshotViewSet, basename='health-snapshot')
 
 
 router.register('overall-wellbeing', OverallWellbeingViewSet, basename='overall-wellbeing')
