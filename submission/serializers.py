@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from submission.models import Patient, Submission, PersonalData, Phone, OverallWellbeing, CommonSymptoms, \
-    GradedSymptoms, RelatedConditions
+    GradedSymptoms, RelatedConditions, InitialHealthSnapshot
 
 
 class OverallWellbeingSerializer(serializers.ModelSerializer):
@@ -139,4 +139,36 @@ class PatientSerializer(serializers.ModelSerializer):
             'id',
             'anon_patient_id',
             'submissions'
+        ]
+
+class InitialHealthSnapshotSerializer(serializers.ModelSerializer):
+
+    # user = serializers.HiddenField(
+    #     default=serializers.CurrentUserDefault()
+    # )
+
+    class Meta:
+        model = InitialHealthSnapshot
+        extra_kwargs = {
+            'created_at': {'read_only': True}
+        }
+        fields = [
+            
+            'submission',
+            'created_at',
+
+            'blood_pressure_systolic',
+            'blood_pressure_diastolic',
+            'heart_rate',
+            'breathing_rate',
+            'temperature',
+            'oxygen_saturation',
+
+            'gcs_eye',
+            'gcs_verbal',
+            'gcs_motor',
+
+            'observations',
+
+            'severity',
         ]

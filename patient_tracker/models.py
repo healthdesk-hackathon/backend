@@ -13,8 +13,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone as tz
 
-from submission.models import Patient
-
 
 def prevent_update(pk):
     """prevent a record from being saved if it has a pk
@@ -24,6 +22,17 @@ def prevent_update(pk):
         raise ValidationError(
             'record must not be updated'
         )
+
+
+class Patient(models.Model):
+    """
+    Central crosswalk model to connect all related records for a unique patient
+    """
+
+    anon_patient_id = models.CharField(max_length=12, default=None, unique=True)
+
+    def __str__(self):
+        return self.anon_patient_id
 
 
 class BedAssignment(models.Model):

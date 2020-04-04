@@ -4,8 +4,7 @@ import uuid
 
 from django.db import models
 from submission.models import Submission, PersonalData, Phone, OverallWellbeing, CommonSymptoms, \
-    GradedSymptoms, RelatedConditions, ChosenMedicalCenter, MedicalCenter
-
+    GradedSymptoms, RelatedConditions, ChosenMedicalCenter, MedicalCenter, InitialHealthSnapshot
 
 
 class PersonalDataInline(admin.TabularInline):
@@ -52,3 +51,7 @@ class SubmissionAdmin(admin.ModelAdmin):
 
 class MedicalCenterAdmin(models.Model):
     model = MedicalCenter
+
+
+class InitialHealthSnapshotInline(models.Model):
+    model = InitialHealthSnapshot
