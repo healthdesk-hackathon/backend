@@ -149,6 +149,11 @@ class Admission(models.Model):
         res.save()
         return res
 
+    def record_deceased(self):
+        res = Deceased(admission=self)
+        res.save()
+        return res
+
     @property
     def is_discharged(self):
         return self.discharge_events.first() is not None
@@ -156,6 +161,14 @@ class Admission(models.Model):
     def discharged(self):
         return self.is_discharged
     discharged.boolean = True
+
+    @property
+    def is_deceased(self):
+        return self.deceased_event is not None
+
+    def deceased(self):
+        return self.is_deceased
+    deceased.boolean = True
 
     def __str__(self):
 
@@ -216,6 +229,7 @@ class Discharge(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     admission = models.ForeignKey(Admission, on_delete=models.CASCADE, null=False, related_name='discharge_events')
     discharged_at = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(null=True, blank=True)
 
     @transaction.atomic
     def save(self):
@@ -229,6 +243,23 @@ class Discharge(models.Model):
         if bed:
             # Release the current bed and assign the new one
             bed.leave_bed()
+
+
+class Deceased(models.Model):
+    """ 
+    The patient is deceased. Any additional workflow can continue from here. 
+    Additionally, the bed is released.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    admission = models.OneToOneField(Admission, on_delete=models.CASCADE, null=False, related_name='deceased_event')
+    registered_at = models.DateTimeField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    cause = models.CharField(blank=False, null=False, max_length=100)
+    notes = models.TextField(null=True, blank=True)
+    notified_next_of_kin = models.BooleanField(default=False)
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='recorded_deceased', on_delete=models.SET_NULL,
+                             null=True)
 
 
 class Bed(models.Model):

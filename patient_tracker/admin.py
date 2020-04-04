@@ -4,9 +4,9 @@ from django.contrib import admin, messages
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 
-from patient_tracker.models import Admission, Bed, BedType, BedAssignment, HealthSnapshot
+from patient_tracker.models import Admission, Bed, BedType, BedAssignment, HealthSnapshot, Discharge, Deceased
 from project.admin import admin_site
-from submission.models import * #, #Patient, Submission
+from submission.models import *  # , #Patient, Submission
 from django.utils.translation import gettext_lazy as _
 
 
@@ -97,7 +97,6 @@ class BedsAdmin(ActionsModelAdmin):
     set_to_cleaning.url_path = 'set-cleaning'
 
 
-
 class SubmissionInline(admin.TabularInline):
     model = Submission
     show_change_link = True
@@ -154,23 +153,23 @@ class AdmissionAdmin(ActionsModelAdmin):
         actions_details = (
             'view_triage_submission',
             'discharge_patient',
+            'deceased_patient',
         )
 
         # This blocks a migration, so put in try... except
         try:
             for bed_type in BedType.objects.all():
                 action_slug = '-'.join(bed_type.name.lower().split(' '))
-                action = lambda request, pk, bed_type=bed_type: self.bed_type_dispatch_action(request, pk, bed_type)
+                def action(request, pk, bed_type=bed_type): return self.bed_type_dispatch_action(request, pk, bed_type)
                 setattr(action, 'short_description', f'Assign to bed: {bed_type.name}')
                 setattr(action, 'url_path', f'set-{action_slug}')
 
                 action_name = f'assign_to_{action_slug.replace("-", "_")}'
                 setattr(self, action_name, action)
                 actions_details += (action_name,)
-        
+
         except Exception:
             pass
-
 
         setattr(self, 'actions_detail', actions_details)
 
@@ -178,6 +177,7 @@ class AdmissionAdmin(ActionsModelAdmin):
         'local_barcode',
         'current_severity',
         'is_discharged',
+        'is_deceased',
         'current_bed'
     ]
 
@@ -199,6 +199,7 @@ class AdmissionAdmin(ActionsModelAdmin):
         'patient',
         'admitted_at',
         'discharged',
+        'deceased',
         'current_severity'
     ]
 
@@ -230,6 +231,14 @@ class AdmissionAdmin(ActionsModelAdmin):
     discharge_patient.url_path = 'discharge'
     discharge_patient.short_description = 'Discharge'
 
+    def deceased_patient(self, request, pk):
+        admission = Admission.objects.get(pk=pk)
+        admission.record_deceased()
+        messages.success(request, 'Person has been recorded deceased')
+        return redirect(reverse_lazy('admin:patient_tracker_admission_changelist'))
+
+    deceased_patient.url_path = 'deceased'
+    deceased_patient.short_description = 'deceased'
 
     def view_triage_submission(self, request, pk):
         admission = Admission.objects.get(pk=pk)
@@ -239,7 +248,6 @@ class AdmissionAdmin(ActionsModelAdmin):
 
     view_triage_submission.short_description = _('Admission Info')
     view_triage_submission.url_path = 'view-triage-submission'
-
 
 
 class HealthSnapshotProxy(HealthSnapshot):
@@ -294,6 +302,7 @@ class HealthSnapshotAdmin(ActionsModelAdmin):
 Handle the triage submission view
 
 """
+
 
 class PersonalDataInline(admin.TabularInline):
     model = PersonalData
