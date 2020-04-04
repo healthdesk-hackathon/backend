@@ -12,13 +12,11 @@ from patient_tracker.serializers import AdmissionSerializer, HealthSnapshotSeria
     DischargeSerializer, DeceasedSerializer, DashboardSerializer
 
 
-
-# Create your views here.
-class AdmissionViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
+class AdmissionViewSet(ModelViewSet):
     queryset = Admission.objects.all()
     serializer_class = AdmissionSerializer
 
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.DjangoModelPermissions]
 
 
 class HealthSnapshotViewSet(ModelViewSet):
