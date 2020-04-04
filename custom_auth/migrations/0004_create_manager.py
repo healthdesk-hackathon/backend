@@ -36,13 +36,11 @@ def create_manager(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    atomic = False
-
     dependencies = [
         ('custom_auth', '0003_set_admin_as_staff'),
     ]
 
     operations = [
-        migrations.RunPython(make_permissions),
-        migrations.RunPython(create_manager)
+        # migrations.RunPython(make_permissions),
+        # migrations.RunPython(create_manager)
     ]
