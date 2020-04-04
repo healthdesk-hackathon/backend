@@ -11,6 +11,7 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Count, F, Avg, Subquery, OuterRef, Max
 from django.utils import timezone as tz
 
 
@@ -44,6 +45,19 @@ class BedAssignment(models.Model):
     bed = models.ForeignKey('Bed', related_name='assignments', on_delete=models.CASCADE)
     assigned_at = models.DateTimeField(auto_now_add=True)
     unassigned_at = models.DateTimeField(null=True, blank=True, default=None)
+
+    class BedAssignmentManager(models.Manager):
+
+        def current_per_severity(self):
+            qs = self.get_queryset()
+            qs = qs.filter(unassigned_at__isnull=True)
+            qs = qs.annotate(label=F('bed__bed_type__name'))
+            qs = qs.order_by('label')
+            qs = qs.values('label')
+            qs = qs.annotate(value=Count('label'))
+            return qs
+
+    objects = BedAssignmentManager()
 
     @transaction.atomic
     def save(self, **kwargs):
@@ -80,6 +94,37 @@ class Admission(models.Model):
 
         def rejected(self):
             return self.get_queryset().filter(admitted_at__isnull=True)
+
+        def average_duration(self):
+            qs = self.get_queryset()
+            qs = qs.annotate(nb_discharges=Count('discharge_events')).exclude(nb_discharges=0)
+            qs = qs.annotate(left_at=Subquery(
+                BedAssignment.objects.filter(unassigned_at__isnull=False)
+                    .filter(admission=OuterRef('pk'))
+                    .annotate(max=Max('unassigned_at'))
+                    .values('max'),
+                num=models.DateTimeField()
+            ))
+            qs = qs.values('admitted_at', 'left_at')
+            average_duration = qs.aggregate(average_duration=Avg(F('left_at') - F('admitted_at')))['average_duration']
+            return average_duration
+
+        def admissions_per_day(self):
+            qs = self.accepted()
+            qs = qs.order_by('admitted_at')
+            qs = qs.extra(select={'day': 'date(admitted_at)'})
+            all_results = [[x.day, x.health_snapshots.order_by('created_at')[0].severity] for x in qs]
+            admissions = {}
+            for [day, label] in all_results:
+                if day not in admissions:
+                    admissions[day] = {}
+                if label not in admissions[day]:
+                    admissions[day][label] = 0
+                admissions[day][label] += 1
+            return [{'date': key, 'count': [{'label': label, 'value': count} for [label, count] in value.items()]} for
+                    [key, value] in admissions.items()]
+
+    objects = AdmissionManager()
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -160,6 +205,7 @@ class Admission(models.Model):
 
     def discharged(self):
         return self.is_discharged
+
     discharged.boolean = True
 
     @property

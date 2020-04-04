@@ -93,6 +93,40 @@ class BedTypeSerializer(serializers.ModelSerializer):
         ]
 
 
+class LabelledValueSerializer(serializers.Serializer):
+    label = serializers.CharField()
+    value = serializers.FloatField()
+
+
+class AdmissionCountSerializer(serializers.Serializer):
+
+    date = serializers.DateField()
+    count = LabelledValueSerializer(many=True)
+
+
+class DashboardSerializer(serializers.Serializer):
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass
+
+    bed_availability = LabelledValueSerializer(many=True)
+    assignments = LabelledValueSerializer(many=True)
+    global_availability = serializers.FloatField()
+    total_discharges = serializers.IntegerField()
+    average_duration = serializers.DurationField()
+    admissions_per_day = AdmissionCountSerializer(many=True)
+
+    class Meta:
+        fields = [
+            'bed_availability',
+            'global_availability',
+            'total_discharges',
+            'assignments'
+        ]
+
+
 class DischargeSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -121,5 +155,3 @@ class DeceasedSerializer(serializers.ModelSerializer):
             'registered_at',
             'user'
         ]
-
-

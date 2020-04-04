@@ -10,7 +10,7 @@ from submission.views import SubmissionViewSet, PhoneViewSet, PersonalDataViewSe
     MedicalCenterViewSet, InitialHealthSnapshotViewSet
 
 from patient_tracker.views import AdmissionViewSet, HealthSnapshotViewSet, BedViewSet, BedTypeViewSet, \
-    DischargeViewSet, DeceasedViewSet
+    DischargeViewSet, DeceasedViewSet, DashboardView
 
 
 app_name = 'v1'
@@ -56,6 +56,8 @@ router.register('related-conditions', RelatedConditionsViewSet, basename='relate
 urlpatterns = router.urls + [
     re_path(r'token/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     re_path(r'token/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
+
+    re_path(r'dashboard/$', DashboardView.as_view(), name='dashboard'),
 
     # Swagger related urls
     re_path(r'swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
