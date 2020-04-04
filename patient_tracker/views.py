@@ -16,12 +16,12 @@ class AdmissionViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewset
     permission_classes = [permissions.AllowAny]
 
 
-class HealthSnapshotViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
+class HealthSnapshotViewSet(ModelViewSet):
 
     queryset = HealthSnapshot.objects.all()
     serializer_class = HealthSnapshotSerializer
 
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.DjangoModelPermissions]
 
 
 class BedViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):

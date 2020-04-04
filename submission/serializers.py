@@ -138,13 +138,14 @@ class PatientSerializer(serializers.ModelSerializer):
 class MedicalCenterSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = MedicalCenter,
+        model = MedicalCenter
         fields = [
             'id',
             'name',
             'latitude',
             'longitude',
         ]
+
 
 class InitialHealthSnapshotSerializer(serializers.ModelSerializer):
 
@@ -158,7 +159,7 @@ class InitialHealthSnapshotSerializer(serializers.ModelSerializer):
             'created_at': {'read_only': True}
         }
         fields = [
-            
+
             'submission',
             'created_at',
 

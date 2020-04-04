@@ -39,7 +39,8 @@ router.register('medical-center', MedicalCenterViewSet, basename='medical-center
 
 router.register('bed', BedViewSet, basename='bed')
 router.register('bed-type', BedTypeViewSet, basename='bed-type')
-router.register('initial-health-snapshot', InitialHealthSnapshotViewSet, basename='health-snapshot')
+router.register('health-snapshot', HealthSnapshotViewSet, basename='health-snapshot')
+router.register('initial-health-snapshot', InitialHealthSnapshotViewSet, basename='initial-health-snapshot')
 
 
 router.register('overall-wellbeing', OverallWellbeingViewSet, basename='overall-wellbeing')
