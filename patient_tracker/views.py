@@ -7,9 +7,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from patient_tracker.models import Admission, HealthSnapshot, Bed, BedType, Discharge, BedAssignment
+from patient_tracker.models import Admission, HealthSnapshot, Bed, BedType, Discharge, Deceased, BedAssignment
 from patient_tracker.serializers import AdmissionSerializer, HealthSnapshotSerializer, BedSerializer, BedTypeSerializer, \
-    DashboardSerializer
+    DischargeSerializer, DeceasedSerializer, DashboardSerializer
+
 
 
 # Create your views here.
@@ -85,3 +86,19 @@ class DashboardView(APIView):
         serializer.is_valid(raise_exception=True)
 
         return Response(serializer.data)
+
+
+class DischargeViewSet(ModelViewSet):
+
+    queryset = Discharge.objects.all()
+    serializer_class = DischargeSerializer
+
+    permission_classes = [permissions.DjangoModelPermissions]
+
+
+class DeceasedViewSet(ModelViewSet):
+
+    queryset = Deceased.objects.all()
+    serializer_class = DeceasedSerializer
+
+    permission_classes = [permissions.DjangoModelPermissions]

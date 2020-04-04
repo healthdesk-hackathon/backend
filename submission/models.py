@@ -4,7 +4,7 @@ import uuid
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from patient_tracker.models import Patient, Admission, HealthSnapshot
+from patient_tracker.models import Patient, Admission, HealthSnapshot, BedType
 
 
 class Submission(models.Model):
@@ -236,6 +236,13 @@ class InitialHealthSnapshot(models.Model):
                                          #   user=self.user
                                          )
         health_snapshot.save()
+
+        # Automatically assign a bed type that matches the severity, if one is available
+        # and return the assigned bed
+        bed_type = BedType.match_severity(self.severity)
+
+        if bed_type is not None:
+            admission.assign_bed(bed_type)
 
     @property
     def gcs_total(self):

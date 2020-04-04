@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from patient_tracker.models import Admission, HealthSnapshot, Bed, BedType
+from patient_tracker.models import Admission, HealthSnapshot, Bed, BedType, \
+    Discharge, Deceased
 
 
 class AdmissionSerializer(serializers.ModelSerializer):
@@ -123,4 +124,34 @@ class DashboardSerializer(serializers.Serializer):
             'global_availability',
             'total_discharges',
             'assignments'
+        ]
+
+
+class DischargeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Discharge
+
+        fields = [
+            'id',
+            'admission',
+            'discharged_at',
+            'notes',
+            'user',
+        ]
+
+
+class DeceasedSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Deceased
+
+        fields = [
+            'id',
+            'admission',
+            'created_at',
+            'registered_at',
+            'notes',
+            'registered_at',
+            'user'
         ]
