@@ -144,6 +144,7 @@ class MedicalCenterSerializer(serializers.ModelSerializer):
             'name',
             'latitude',
             'longitude',
+        ]
 
 class InitialHealthSnapshotSerializer(serializers.ModelSerializer):
 
