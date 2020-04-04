@@ -1,6 +1,4 @@
 from django.contrib import admin
-import hashlib
-import uuid
 
 from django.db import models
 from submission.models import Submission, PersonalData, Phone, OverallWellbeing, CommonSymptoms, \
