@@ -7,10 +7,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from submission.views import SubmissionViewSet, PhoneViewSet, PersonalDataViewSet, \
     OverallWellbeingViewSet, CommonSymptomsViewSet, GradedSymptomsViewSet, RelatedConditionsViewSet, \
-    InitialHealthSnapshotViewSet
-
-from patient_tracker.views import AdmissionViewSet, HealthSnapshotViewSet, BedViewSet, BedTypeViewSet, \
     MedicalCenterViewSet, InitialHealthSnapshotViewSet
+
+from patient_tracker.views import AdmissionViewSet, HealthSnapshotViewSet, BedViewSet, BedTypeViewSet
 
 
 app_name = 'v1'
