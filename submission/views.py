@@ -1,10 +1,10 @@
 from rest_framework import viewsets, permissions, mixins
 
 from submission.models import Submission, PersonalData, Phone, OverallWellbeing, CommonSymptoms, \
-    GradedSymptoms, RelatedConditions, MedicalCenter
+    GradedSymptoms, RelatedConditions, MedicalCenter, InitialHealthSnapshot
 from submission.serializers import SubmissionSerializer, PersonalDataSerializer, PhoneSerializer, \
     OverallWellbeingSerializer, CommonSymptomsSerializer, GradedSymptomsSerializer, RelatedConditionsSerializer, \
-    MedicalCenterSerializer
+    MedicalCenterSerializer, InitialHealthSnapshotSerializer
 
 
 class SubmissionViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, mixins.RetrieveModelMixin,
@@ -63,9 +63,19 @@ class RelatedConditionsViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin,
     permission_classes = [permissions.AllowAny]
 
 
+
 class MedicalCenterViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
 
     queryset = MedicalCenter.objects.all()
     serializer_class = MedicalCenterSerializer
+    
+    permission_classes = [permissions.AllowAny]
+    
+
+
+class InitialHealthSnapshotViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
+
+    queryset = InitialHealthSnapshot.objects.all()
+    serializer_class = InitialHealthSnapshotSerializer
 
     permission_classes = [permissions.AllowAny]
