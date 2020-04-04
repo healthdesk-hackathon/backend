@@ -397,3 +397,12 @@ class BedType(models.Model):
             return None
         else:
             return bed_types[0]
+
+
+class HealthSnapshotFile(models.Model):
+    image_path = 'health_snapshot_file'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    submission = models.ForeignKey(HealthSnapshot, on_delete=models.CASCADE, related_name='health_snapshot_files')
+    file = models.ImageField(upload_to=image_path)
+    notes = models.TextField()
