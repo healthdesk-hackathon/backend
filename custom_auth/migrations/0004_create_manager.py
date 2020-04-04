@@ -21,8 +21,12 @@ def make_permissions(apps, schema_editor):
 
     for perm in permissions:
         for action in ['add', 'view', 'change', 'delete']:
-            new_perm = Permission.objects.get(codename=f'{action}_{perm["model"]}', content_type__app_label=perm['app_label'])
-            manager_group.permissions.add(new_perm)
+            try:
+                new_perm = Permission.objects.get(
+                    codename=f'{action}_{perm["model"]}', content_type__app_label=perm['app_label'])
+                manager_group.permissions.add(new_perm)
+            except:
+                pass
 
 
 def create_manager(apps, schema_editor):

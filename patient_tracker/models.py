@@ -34,6 +34,10 @@ class Patient(models.Model):
     def __str__(self):
         return self.anon_patient_id
 
+    @property
+    def current_admission(self):
+        return self.admissions.latest('-admitted_at')
+
 
 class BedAssignment(models.Model):
     admission = models.ForeignKey('Admission', related_name='assignments', on_delete=models.CASCADE)
@@ -83,7 +87,7 @@ class Admission(models.Model):
     local_barcode_image = models.ImageField(null=True)
 
     # TODO: remove null=True below or fix the __str__ method
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='patient', null=True)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='admissions', null=True)
     admitted_at = models.DateTimeField(null=True, default=None)
     admitted = models.BooleanField(default=True)
 
@@ -310,8 +314,15 @@ class BedType(models.Model):
     number out of service (cleaning)
 
     """
+
+    class SeverityMatchChoices(models.TextChoices):
+        RED = 'RED', 'Red'
+        YELLOW = 'YELLOW', 'Yellow'
+        GREEN = 'GREEN', 'Green'
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50, blank=False)
+    severity_match = models.CharField(max_length=6, blank=True, choices=SeverityMatchChoices.choices)
     total = models.IntegerField(null=False)
 
     def save(self, **kwargs):
@@ -347,3 +358,11 @@ class BedType(models.Model):
 
     def __str__(self):
         return self.name
+
+    @staticmethod
+    def match_severity(severity):
+        bed_types = BedType.objects.filter(severity_match=severity)
+        if len(bed_types) == 0:
+            return None
+        else:
+            return bed_types[0]
