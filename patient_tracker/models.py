@@ -232,6 +232,8 @@ class HealthSnapshot(models.Model):
                              null=True)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
+    main_complain = models.CharField(null=True, blank=True, default='', max_length=250)
+
     admission = models.ForeignKey(Admission, on_delete=models.PROTECT, related_name='health_snapshots')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -292,8 +294,8 @@ class Discharge(models.Model):
 
 
 class Deceased(models.Model):
-    """ 
-    The patient is deceased. Any additional workflow can continue from here. 
+    """
+    The patient is deceased. Any additional workflow can continue from here.
     Additionally, the bed is released.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

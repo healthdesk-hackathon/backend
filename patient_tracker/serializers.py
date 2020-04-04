@@ -41,6 +41,7 @@ class HealthSnapshotSerializer(serializers.ModelSerializer):
             'breathing_rate',
             'temperature',
             'oxygen_saturation',
+            'main_complain',
 
             'gcs_eye',
             'gcs_verbal',
