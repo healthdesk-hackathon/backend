@@ -111,12 +111,12 @@ class DashboardSerializer(serializers.Serializer):
     def create(self, validated_data):
         pass
 
-    bed_availability = LabelledValueSerializer(many=True)
-    assignments = LabelledValueSerializer(many=True)
-    global_availability = serializers.FloatField()
-    total_discharges = serializers.IntegerField()
-    average_duration = serializers.DurationField()
-    admissions_per_day = AdmissionCountSerializer(many=True)
+    bed_availability = LabelledValueSerializer(many=True, required=False)
+    assignments = LabelledValueSerializer(many=True, )
+    global_availability = serializers.FloatField(required=False)
+    total_discharges = serializers.IntegerField(required=False)
+    average_duration = serializers.DurationField(required=False)
+    admissions_per_day = AdmissionCountSerializer(many=True, required=False)
 
     class Meta:
         fields = [
