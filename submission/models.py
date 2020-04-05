@@ -4,12 +4,7 @@ import uuid
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-class Patient(models.Model):
-    """
-    Central crosswalk model to connect all related records for a unique patient
-    """
-
-    anon_patient_id = models.CharField(max_length=12, default=None, unique=True)
+from patient_tracker.models import Patient, Admission, HealthSnapshot, BedType
 
 
 class Submission(models.Model):
@@ -26,6 +21,10 @@ class Submission(models.Model):
     identifier = models.CharField(max_length=50, null=False)
     id_type = models.CharField(max_length=50, null=False)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, blank=True, null=True, related_name='submissions')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     @property
     def patient_anon_id(self):
@@ -37,8 +36,6 @@ class Submission(models.Model):
             patient, _ = Patient.objects.get_or_create(anon_patient_id=patient_id)
             self.patient = patient
         super().save(**kwargs)
-
-
 
 
 class PersonalData(models.Model):
@@ -93,6 +90,7 @@ class OverallWellbeing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='overall_wellbeing')
     overall_value = models.IntegerField(null=False, validators=[MaxValueValidator(10), MinValueValidator(0)])
+
 
 class CommonSymptoms(models.Model):
     """
@@ -181,3 +179,103 @@ class ChosenMedicalCenter(models.Model):
 
     medical_center = models.ForeignKey(MedicalCenter, on_delete=models.CASCADE, related_name='medical_center')
 
+
+class InitialHealthSnapshot(models.Model):
+    class SeverityChoices(models.TextChoices):
+        RED = 'RED', 'Red'
+        YELLOW = 'YELLOW', 'Yellow'
+        GREEN = 'GREEN', 'Green'
+        WHITE = 'WHITE', 'White'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='initial_health_snapshot')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    blood_pressure_systolic = models.PositiveIntegerField(null=True, blank=True)
+    blood_pressure_diastolic = models.PositiveIntegerField(null=True, blank=True)
+    heart_rate = models.PositiveIntegerField(null=True, blank=True)
+    breathing_rate = models.PositiveIntegerField(null=True, blank=True)
+    temperature = models.FloatField(null=True, blank=True)
+    oxygen_saturation = models.PositiveIntegerField(null=True, blank=True)
+
+    gcs_eye = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)], null=True,
+                                               blank=True, verbose_name='GCS eye')
+    gcs_verbal = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], null=True,
+                                                  blank=True, verbose_name='GCS verbal')
+    gcs_motor = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)], null=True,
+                                                 blank=True, verbose_name='GCS motor')
+
+    observations = models.TextField(null=True, blank=True)
+
+    severity = models.CharField(max_length=6, choices=SeverityChoices.choices)
+
+    def save(self, **kwargs):
+        super().save(**kwargs)
+        self.create_admission()
+
+    def create_admission(self):
+        """ Create an admission if the severity was not 'white', indicating dismiss without admission"""
+        if self.severity == InitialHealthSnapshot.SeverityChoices.WHITE:
+            return
+
+        admission = Admission(patient=self.submission.patient)
+        admission.save()
+
+        health_snapshot = HealthSnapshot(admission=admission,
+                                         blood_pressure_systolic=self.blood_pressure_systolic,
+                                         blood_pressure_diastolic=self.blood_pressure_diastolic,
+                                         heart_rate=self.heart_rate,
+                                         breathing_rate=self.breathing_rate,
+                                         temperature=self.temperature,
+                                         oxygen_saturation=self.oxygen_saturation,
+                                         gcs_eye=self.gcs_eye,
+                                         gcs_verbal=self.gcs_verbal,
+                                         gcs_motor=self.gcs_motor,
+                                         observations=self.observations,
+                                         severity=self.severity,
+                                         #   user=self.user
+                                         )
+        health_snapshot.save()
+
+        # Automatically assign a bed type that matches the severity, if one is available
+        # and return the assigned bed
+        bed_type = BedType.match_severity(self.severity)
+
+        if bed_type is not None:
+            admission.assign_bed(bed_type)
+
+    @property
+    def gcs_total(self):
+        if self.gcs_eye is None or self.gcs_verbal is None or self.gcs_motor is None:
+            return 0
+        return self.gcs_eye + self.gcs_verbal + self.gcs_motor
+
+
+class NextOfKinContact(models.Model):
+
+    class RelationshipChoices(models.TextChoices):
+        WIFE = 'WIFE', 'Wife'
+        HUSBAND = 'HUSBAND', 'Husband'
+        CHILD = 'CHILD', 'Child'
+        PARENT = 'PARENT', 'Parent'
+        LEGAL_GUARDIAN = 'LEGAL GUARDIAN', 'Legal Guardian'
+        OTHER = 'OTHER', 'Other'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='next_of_kin_contacts')
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    title = models.CharField(max_length=20)
+    relationship = models.CharField(max_length=20, choices=RelationshipChoices.choices)
+    other_relationship = models.CharField(max_length=20, blank=True, null=True)
+    phone_number = models.CharField(max_length=50)
+    notes = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class PatientPhoto(models.Model):
+    image_path = 'patient_photos'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='patient_photo')
+    photo = models.ImageField(upload_to=image_path)

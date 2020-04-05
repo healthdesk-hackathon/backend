@@ -1,11 +1,10 @@
 from rest_framework import serializers
 
 from submission.models import Patient, Submission, PersonalData, Phone, OverallWellbeing, CommonSymptoms, \
-    GradedSymptoms, RelatedConditions
+    GradedSymptoms, RelatedConditions, MedicalCenter, InitialHealthSnapshot, NextOfKinContact
 
 
 class OverallWellbeingSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = OverallWellbeing
         fields = [
@@ -16,7 +15,6 @@ class OverallWellbeingSerializer(serializers.ModelSerializer):
 
 
 class CommonSymptomsSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = CommonSymptoms
         fields = [
@@ -56,7 +54,6 @@ class GradedSymptomsSerializer(serializers.ModelSerializer):
 
 
 class RelatedConditionsSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = RelatedConditions
         fields = [
@@ -78,7 +75,6 @@ class RelatedConditionsSerializer(serializers.ModelSerializer):
 
 
 class PersonalDataSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = PersonalData
         fields = [
@@ -91,9 +87,7 @@ class PersonalDataSerializer(serializers.ModelSerializer):
         ]
 
 
-
 class PhoneSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Phone
         fields = [
@@ -103,12 +97,11 @@ class PhoneSerializer(serializers.ModelSerializer):
             'rank',
             'verified',
             'disabled',
-            'submission'
+            'submission',
         ]
 
 
 class SubmissionSerializer(serializers.ModelSerializer):
-
     phones = PhoneSerializer(many=True, read_only=True)
     persons = PersonalDataSerializer(many=True, read_only=True)
     common_symptoms = CommonSymptomsSerializer(read_only=True)
@@ -125,12 +118,12 @@ class SubmissionSerializer(serializers.ModelSerializer):
             'persons',
             'common_symptoms',
             'graded_symptoms',
-            'related_conditions'
+            'related_conditions',
+            'patient'
         ]
 
 
 class PatientSerializer(serializers.ModelSerializer):
-
     submissions = SubmissionSerializer(many=True, read_only=True)
 
     class Meta:
@@ -140,3 +133,69 @@ class PatientSerializer(serializers.ModelSerializer):
             'anon_patient_id',
             'submissions'
         ]
+
+
+class MedicalCenterSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = MedicalCenter
+        fields = [
+            'id',
+            'name',
+            'latitude',
+            'longitude',
+        ]
+
+
+class InitialHealthSnapshotSerializer(serializers.ModelSerializer):
+
+    # user = serializers.HiddenField(
+    #     default=serializers.CurrentUserDefault()
+    # )
+
+    class Meta:
+        model = InitialHealthSnapshot
+        extra_kwargs = {
+            'created_at': {'read_only': True}
+        }
+        fields = [
+
+            'submission',
+            'created_at',
+
+            'blood_pressure_systolic',
+            'blood_pressure_diastolic',
+            'heart_rate',
+            'breathing_rate',
+            'temperature',
+            'oxygen_saturation',
+
+            'gcs_eye',
+            'gcs_verbal',
+            'gcs_motor',
+
+            'observations',
+
+            'severity',
+        ]
+
+
+class NextOfKinContactSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = NextOfKinContact
+        extra_kwargs = {
+            'created_at': {'read_only': True}
+        }
+        fields = [
+
+            'submission',
+            'first_name',
+            'last_name',
+            'title',
+            'relationship',
+            'other_relationship',
+            'phone_number',
+            'notes',
+        ]
+

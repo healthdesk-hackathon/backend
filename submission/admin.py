@@ -1,11 +1,9 @@
 from django.contrib import admin
-import hashlib
-import uuid
 
 from django.db import models
 from submission.models import Submission, PersonalData, Phone, OverallWellbeing, CommonSymptoms, \
-    GradedSymptoms, RelatedConditions, ChosenMedicalCenter, MedicalCenter
-
+    GradedSymptoms, RelatedConditions, ChosenMedicalCenter, MedicalCenter, InitialHealthSnapshot, \
+    NextOfKinContact, PatientPhoto
 
 
 class PersonalDataInline(admin.TabularInline):
@@ -36,6 +34,17 @@ class ChosenMedicalCenterInline(admin.TabularInline):
     model = ChosenMedicalCenter
 
 
+class NextOfKinContactInline(admin.TabularInline):
+    model = NextOfKinContact
+
+
+class PatientPhotoInline(admin.TabularInline):
+    model = PatientPhoto
+    extra = 1
+    min_num = 0
+    max_num = 1
+
+
 @admin.register(Submission)
 class SubmissionAdmin(admin.ModelAdmin):
 
@@ -46,9 +55,15 @@ class SubmissionAdmin(admin.ModelAdmin):
         CommonSymptomsInline,
         GradedSymptomsInline,
         RelatedConditionsInline,
-        ChosenMedicalCenterInline
+        ChosenMedicalCenterInline,
+        NextOfKinContactInline,
+        PatientPhotoInline,
     ]
 
 
 class MedicalCenterAdmin(models.Model):
     model = MedicalCenter
+
+
+class InitialHealthSnapshotInline(models.Model):
+    model = InitialHealthSnapshot
