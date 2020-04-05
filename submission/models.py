@@ -251,6 +251,28 @@ class InitialHealthSnapshot(models.Model):
         return self.gcs_eye + self.gcs_verbal + self.gcs_motor
 
 
+class NextOfKinContact(models.Model):
+
+    class RelationshipChoices(models.TextChoices):
+        WIFE = 'WIFE', 'Wife'
+        HUSBAND = 'HUSBAND', 'Husband'
+        CHILD = 'CHILD', 'Child'
+        PARENT = 'PARENT', 'Parent'
+        LEGAL_GUARDIAN = 'LEGAL GUARDIAN', 'Legal Guardian'
+        OTHER = 'OTHER', 'Other'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='next_of_kin_contacts')
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    title = models.CharField(max_length=20)
+    relationship = models.CharField(max_length=20, choices=RelationshipChoices.choices)
+    other_relationship = models.CharField(max_length=20, blank=True, null=True)
+    phone_number = models.CharField(max_length=50)
+    notes = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
 class PatientPhoto(models.Model):
     image_path = 'patient_photos'
 

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from submission.models import Patient, Submission, PersonalData, Phone, OverallWellbeing, CommonSymptoms, \
-    GradedSymptoms, RelatedConditions, MedicalCenter, InitialHealthSnapshot
+    GradedSymptoms, RelatedConditions, MedicalCenter, InitialHealthSnapshot, NextOfKinContact
 
 
 class OverallWellbeingSerializer(serializers.ModelSerializer):
@@ -178,3 +178,24 @@ class InitialHealthSnapshotSerializer(serializers.ModelSerializer):
 
             'severity',
         ]
+
+
+class NextOfKinContactSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = NextOfKinContact
+        extra_kwargs = {
+            'created_at': {'read_only': True}
+        }
+        fields = [
+
+            'submission',
+            'first_name',
+            'last_name',
+            'title',
+            'relationship',
+            'other_relationship',
+            'phone_number',
+            'notes',
+        ]
+
