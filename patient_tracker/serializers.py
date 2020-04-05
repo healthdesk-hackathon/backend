@@ -1,7 +1,20 @@
 from rest_framework import serializers
 
+from submission.serializers import *
 from patient_tracker.models import Admission, HealthSnapshot, Bed, BedType, \
-    Discharge, Deceased
+    Discharge, Deceased, Patient
+
+
+class PatientSerializer(serializers.ModelSerializer):
+    submissions = SubmissionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Patient
+        fields = [
+            'id',
+            'anon_patient_id',
+            'submissions'
+        ]
 
 
 class AdmissionSerializer(serializers.ModelSerializer):
@@ -9,14 +22,30 @@ class AdmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Admission
 
-        extra_kwargs = {'local_barcode': {'read_only': True}}
+        extra_kwargs = {
+            'local_barcode': {'read_only': True},
+            'local_barcode_image': {'read_only': True},
+            'patient': {'read_only': True},
+            'admitted': {'read_only': True},
+            'admitted_at': {'read_only': True},
+            'current_severity': {'read_only': True},
+            'current_bed': {'read_only': True},
+        }
+
+        patient = PatientSerializer()
 
         fields = [
             'id',
+            'local_barcode',
             'local_barcode_image',
             'patient',
-            'admitted'
+            'admitted',
+            'admitted_at',
+            'current_severity',
+            'current_bed',
         ]
+
+        depth = 1
 
 
 class HealthSnapshotSerializer(serializers.ModelSerializer):

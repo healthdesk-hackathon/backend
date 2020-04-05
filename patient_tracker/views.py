@@ -25,6 +25,15 @@ class HealthSnapshotViewSet(ModelViewSet):
 
     permission_classes = [permissions.DjangoModelPermissions]
 
+    def get_queryset(self):
+        queryset = self.queryset
+        admission_id = self.request.query_params.get('admission_id', None)
+
+        if admission_id is not None:
+            queryset = queryset.filter(admission=admission_id)
+
+        return queryset
+
 
 class BedViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
     queryset = Bed.objects.all()
