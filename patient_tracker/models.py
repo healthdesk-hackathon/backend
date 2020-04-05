@@ -98,6 +98,8 @@ class Admission(models.Model):
         def average_duration(self):
             qs = self.get_queryset()
             qs = qs.annotate(nb_discharges=Count('discharge_events')).exclude(nb_discharges=0)
+            if not qs.exists():
+                return None
             qs = qs.annotate(left_at=Subquery(
                 BedAssignment.objects.filter(unassigned_at__isnull=False)
                     .filter(admission=OuterRef('pk'))
@@ -292,8 +294,8 @@ class Discharge(models.Model):
 
 
 class Deceased(models.Model):
-    """ 
-    The patient is deceased. Any additional workflow can continue from here. 
+    """
+    The patient is deceased. Any additional workflow can continue from here.
     Additionally, the bed is released.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

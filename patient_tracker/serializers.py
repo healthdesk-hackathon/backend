@@ -123,7 +123,8 @@ class DashboardSerializer(serializers.Serializer):
             'bed_availability',
             'global_availability',
             'total_discharges',
-            'assignments'
+            'assignments',
+            'average_duration'
         ]
 
 
