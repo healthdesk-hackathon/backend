@@ -33,7 +33,7 @@ class Patient(models.Model):
     anon_patient_id = models.CharField(max_length=12, default=None, unique=True)
 
     def __str__(self):
-        return self.anon_patient_id
+        return self.anon_patient_id if self.anon_patient_id else None
 
     @property
     def current_admission(self):
