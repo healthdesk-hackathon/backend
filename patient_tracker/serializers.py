@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from patient_tracker.models import Admission, HealthSnapshot, Bed, BedType
+from patient_tracker.models import Admission, HealthSnapshot, Bed, BedType, \
+    Discharge, Deceased
 
 
 class AdmissionSerializer(serializers.ModelSerializer):
@@ -89,4 +90,68 @@ class BedTypeSerializer(serializers.ModelSerializer):
             'number_available',
             'number_waiting',
             'is_available',
+        ]
+
+
+class LabelledValueSerializer(serializers.Serializer):
+    label = serializers.CharField()
+    value = serializers.FloatField()
+
+
+class AdmissionCountSerializer(serializers.Serializer):
+
+    date = serializers.DateField()
+    count = LabelledValueSerializer(many=True)
+
+
+class DashboardSerializer(serializers.Serializer):
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass
+
+    bed_availability = LabelledValueSerializer(many=True)
+    assignments = LabelledValueSerializer(many=True)
+    global_availability = serializers.FloatField()
+    total_discharges = serializers.IntegerField()
+    average_duration = serializers.DurationField()
+    admissions_per_day = AdmissionCountSerializer(many=True)
+
+    class Meta:
+        fields = [
+            'bed_availability',
+            'global_availability',
+            'total_discharges',
+            'assignments'
+        ]
+
+
+class DischargeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Discharge
+
+        fields = [
+            'id',
+            'admission',
+            'discharged_at',
+            'notes',
+            'user',
+        ]
+
+
+class DeceasedSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Deceased
+
+        fields = [
+            'id',
+            'admission',
+            'created_at',
+            'registered_at',
+            'notes',
+            'registered_at',
+            'user'
         ]

@@ -11,6 +11,7 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Count, F, Avg, Subquery, OuterRef, Max
 from django.utils import timezone as tz
 
 
@@ -34,12 +35,29 @@ class Patient(models.Model):
     def __str__(self):
         return self.anon_patient_id
 
+    @property
+    def current_admission(self):
+        return self.admissions.latest('-admitted_at')
+
 
 class BedAssignment(models.Model):
     admission = models.ForeignKey('Admission', related_name='assignments', on_delete=models.CASCADE)
     bed = models.ForeignKey('Bed', related_name='assignments', on_delete=models.CASCADE)
     assigned_at = models.DateTimeField(auto_now_add=True)
     unassigned_at = models.DateTimeField(null=True, blank=True, default=None)
+
+    class BedAssignmentManager(models.Manager):
+
+        def current_per_severity(self):
+            qs = self.get_queryset()
+            qs = qs.filter(unassigned_at__isnull=True)
+            qs = qs.annotate(label=F('bed__bed_type__name'))
+            qs = qs.order_by('label')
+            qs = qs.values('label')
+            qs = qs.annotate(value=Count('label'))
+            return qs
+
+    objects = BedAssignmentManager()
 
     @transaction.atomic
     def save(self, **kwargs):
@@ -77,13 +95,44 @@ class Admission(models.Model):
         def rejected(self):
             return self.get_queryset().filter(admitted_at__isnull=True)
 
+        def average_duration(self):
+            qs = self.get_queryset()
+            qs = qs.annotate(nb_discharges=Count('discharge_events')).exclude(nb_discharges=0)
+            qs = qs.annotate(left_at=Subquery(
+                BedAssignment.objects.filter(unassigned_at__isnull=False)
+                    .filter(admission=OuterRef('pk'))
+                    .annotate(max=Max('unassigned_at'))
+                    .values('max'),
+                num=models.DateTimeField()
+            ))
+            qs = qs.values('admitted_at', 'left_at')
+            average_duration = qs.aggregate(average_duration=Avg(F('left_at') - F('admitted_at')))['average_duration']
+            return average_duration
+
+        def admissions_per_day(self):
+            qs = self.accepted()
+            qs = qs.order_by('admitted_at')
+            qs = qs.extra(select={'day': 'date(admitted_at)'})
+            all_results = [[x.day, x.health_snapshots.order_by('created_at')[0].severity] for x in qs]
+            admissions = {}
+            for [day, label] in all_results:
+                if day not in admissions:
+                    admissions[day] = {}
+                if label not in admissions[day]:
+                    admissions[day][label] = 0
+                admissions[day][label] += 1
+            return [{'date': key, 'count': [{'label': label, 'value': count} for [label, count] in value.items()]} for
+                    [key, value] in admissions.items()]
+
+    objects = AdmissionManager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     local_barcode = models.CharField(max_length=13, unique=True, null=True)
     local_barcode_image = models.ImageField(null=True)
 
     # TODO: remove null=True below or fix the __str__ method
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='patient', null=True)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='admissions', null=True)
     admitted_at = models.DateTimeField(null=True, default=None)
     admitted = models.BooleanField(default=True)
 
@@ -145,13 +194,27 @@ class Admission(models.Model):
         res.save()
         return res
 
+    def record_deceased(self):
+        res = Deceased(admission=self)
+        res.save()
+        return res
+
     @property
     def is_discharged(self):
         return self.discharge_events.first() is not None
 
     def discharged(self):
         return self.is_discharged
+
     discharged.boolean = True
+
+    @property
+    def is_deceased(self):
+        return self.deceased_event is not None
+
+    def deceased(self):
+        return self.is_deceased
+    deceased.boolean = True
 
     def __str__(self):
 
@@ -212,6 +275,7 @@ class Discharge(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     admission = models.ForeignKey(Admission, on_delete=models.CASCADE, null=False, related_name='discharge_events')
     discharged_at = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(null=True, blank=True)
 
     @transaction.atomic
     def save(self):
@@ -225,6 +289,23 @@ class Discharge(models.Model):
         if bed:
             # Release the current bed and assign the new one
             bed.leave_bed()
+
+
+class Deceased(models.Model):
+    """ 
+    The patient is deceased. Any additional workflow can continue from here. 
+    Additionally, the bed is released.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    admission = models.OneToOneField(Admission, on_delete=models.CASCADE, null=False, related_name='deceased_event')
+    registered_at = models.DateTimeField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    cause = models.CharField(blank=False, null=False, max_length=100)
+    notes = models.TextField(null=True, blank=True)
+    notified_next_of_kin = models.BooleanField(default=False)
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='recorded_deceased', on_delete=models.SET_NULL,
+                             null=True)
 
 
 class Bed(models.Model):
@@ -310,8 +391,15 @@ class BedType(models.Model):
     number out of service (cleaning)
 
     """
+
+    class SeverityMatchChoices(models.TextChoices):
+        RED = 'RED', 'Red'
+        YELLOW = 'YELLOW', 'Yellow'
+        GREEN = 'GREEN', 'Green'
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50, blank=False)
+    severity_match = models.CharField(max_length=6, blank=True, choices=SeverityMatchChoices.choices)
     total = models.IntegerField(null=False)
 
     def save(self, **kwargs):
@@ -347,3 +435,20 @@ class BedType(models.Model):
 
     def __str__(self):
         return self.name
+
+    @staticmethod
+    def match_severity(severity):
+        bed_types = BedType.objects.filter(severity_match=severity)
+        if len(bed_types) == 0:
+            return None
+        else:
+            return bed_types[0]
+
+
+class HealthSnapshotFile(models.Model):
+    image_path = 'health_snapshot_file'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    submission = models.ForeignKey(HealthSnapshot, on_delete=models.CASCADE, related_name='health_snapshot_files')
+    file = models.ImageField(upload_to=image_path)
+    notes = models.TextField()

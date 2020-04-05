@@ -4,7 +4,7 @@ import uuid
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from patient_tracker.models import Patient, Admission, HealthSnapshot
+from patient_tracker.models import Patient, Admission, HealthSnapshot, BedType
 
 
 class Submission(models.Model):
@@ -237,6 +237,13 @@ class InitialHealthSnapshot(models.Model):
                                          )
         health_snapshot.save()
 
+        # Automatically assign a bed type that matches the severity, if one is available
+        # and return the assigned bed
+        bed_type = BedType.match_severity(self.severity)
+
+        if bed_type is not None:
+            admission.assign_bed(bed_type)
+
     @property
     def gcs_total(self):
         if self.gcs_eye is None or self.gcs_verbal is None or self.gcs_motor is None:
@@ -264,3 +271,11 @@ class NextOfKinContact(models.Model):
     phone_number = models.CharField(max_length=50)
     notes = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class PatientPhoto(models.Model):
+    image_path = 'patient_photos'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    submission = models.OneToOneField(Submission, on_delete=models.CASCADE, related_name='patient_photo')
+    photo = models.ImageField(upload_to=image_path)
