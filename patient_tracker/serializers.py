@@ -32,6 +32,7 @@ class AdmissionSerializer(serializers.ModelSerializer):
             'admitted_at': {'read_only': True},
             'current_severity': {'read_only': True},
             'current_bed': {'read_only': True},
+            'patient_full_name': {'read_only': True},
         }
 
         patient = PatientSerializer()
@@ -45,6 +46,7 @@ class AdmissionSerializer(serializers.ModelSerializer):
             'admitted_at',
             'current_severity',
             'current_bed',
+            'patient_full_name'
         ]
 
         depth = 1
@@ -169,7 +171,6 @@ class DischargeSerializer(serializers.ModelSerializer):
             'admission',
             'discharged_at',
             'notes',
-            'user',
         ]
 
 
@@ -185,5 +186,4 @@ class DeceasedSerializer(serializers.ModelSerializer):
             'registered_at',
             'notes',
             'registered_at',
-            'user'
         ]

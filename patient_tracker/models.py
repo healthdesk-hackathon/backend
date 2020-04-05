@@ -136,6 +136,13 @@ class Admission(models.Model):
     admitted_at = models.DateTimeField(null=True, default=None)
     admitted = models.BooleanField(default=True)
 
+    @property
+    def patient_full_name(self):
+        if self.patient and self.patient.submissions.count() > 0:
+            data = self.patient.submissions.first().personal_data.first()
+            return f'{data.first_name} {data.last_name}'
+        return self.id
+
     def generate_barcode_image(self):
 
         image = ImageFile(f'/tmp/{self.local_barcode}.jpeg')
