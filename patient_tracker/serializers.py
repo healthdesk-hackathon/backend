@@ -22,7 +22,16 @@ class AdmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Admission
 
-        extra_kwargs = {'local_barcode': {'read_only': True}}
+        extra_kwargs = {
+            'local_barcode': {'read_only': True},
+            'local_barcode_image': {'read_only': True},
+            'patient': {'read_only': True},
+            'admitted': {'read_only': True},
+            'admitted_at': {'read_only': True},
+            'current_severity': {'read_only': True},
+            'current_bed': {'read_only': True},
+        }
+
         patient = PatientSerializer()
 
         fields = [
