@@ -137,7 +137,7 @@ class Admission(models.Model):
     admitted = models.BooleanField(default=True)
 
     @property
-    def patient_full_name(self):
+    def patient_display(self):
         if self.patient and self.patient.submissions.count() > 0:
             data = self.patient.submissions.first().personal_data.first()
             return f'{data.first_name} {data.last_name}'
