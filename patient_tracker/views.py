@@ -49,7 +49,8 @@ class DashboardView(APIView):
             'global_availability': 0,
             'total_discharges': 0,
             'assignments': [],
-            'admissions_per_day': []
+            'admissions_per_day': [],
+            'average_duration': None
         }
 
         bed_types = BedType.objects.all()
@@ -67,8 +68,7 @@ class DashboardView(APIView):
         data['assignments'] = list(BedAssignment.objects.current_per_severity())
 
         duration = Admission.objects.average_duration()
-        if duration:
-            data['average_duration'] = duration
+        data['average_duration'] = duration
 
         admissions_per_day = Admission.objects.admissions_per_day()
         data['admissions_per_day'] = admissions_per_day

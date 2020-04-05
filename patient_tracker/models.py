@@ -98,8 +98,6 @@ class Admission(models.Model):
         def average_duration(self):
             qs = self.get_queryset()
             qs = qs.annotate(nb_discharges=Count('discharge_events')).exclude(nb_discharges=0)
-            if not qs.exists():
-                return None
             qs = qs.annotate(left_at=Subquery(
                 BedAssignment.objects.filter(unassigned_at__isnull=False)
                     .filter(admission=OuterRef('pk'))

@@ -115,7 +115,7 @@ class DashboardSerializer(serializers.Serializer):
     assignments = LabelledValueSerializer(many=True, )
     global_availability = serializers.FloatField(required=False)
     total_discharges = serializers.IntegerField(required=False)
-    average_duration = serializers.DurationField(required=False)
+    average_duration = serializers.DurationField(required=False, allow_null=True)
     admissions_per_day = AdmissionCountSerializer(many=True, required=False)
 
     class Meta:
