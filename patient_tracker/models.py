@@ -217,6 +217,8 @@ class Admission(models.Model):
     deceased.boolean = True
 
     def __str__(self):
+        if not self.patient:
+            return f' - {str(self.id)[:12]}'
 
         return f'{self.patient.anon_patient_id or ""} - {str(self.id)[:12]}'
 
