@@ -19,6 +19,8 @@ class PatientSerializer(serializers.ModelSerializer):
 
 class AdmissionSerializer(serializers.ModelSerializer):
 
+    current_bed = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = Admission
 
