@@ -113,7 +113,7 @@ class Admission(models.Model):
             qs = self.accepted()
             qs = qs.order_by('admitted_at')
             qs = qs.extra(select={'day': 'date(admitted_at)'})
-            all_results = [[x.day, x.health_snapshots.order_by('created_at')[0].severity] for x in qs]
+            all_results = [[x.day, x.health_snapshots.order_by('created_at')[0].severity] for x in qs if x.health_snapshots.order_by('created_at').count() > 0]
             admissions = {}
             for [day, label] in all_results:
                 if day not in admissions:
