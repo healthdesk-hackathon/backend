@@ -100,9 +100,9 @@ class Admission(models.Model):
             qs = qs.annotate(nb_discharges=Count('discharge_events')).exclude(nb_discharges=0)
             qs = qs.annotate(left_at=Subquery(
                 BedAssignment.objects.filter(unassigned_at__isnull=False)
-                    .filter(admission=OuterRef('pk'))
-                    .annotate(max=Max('unassigned_at'))
-                    .values('max'),
+                .filter(admission=OuterRef('pk'))
+                .annotate(max=Max('unassigned_at'))
+                .values('max'),
                 num=models.DateTimeField()
             ))
             qs = qs.values('admitted_at', 'left_at')
