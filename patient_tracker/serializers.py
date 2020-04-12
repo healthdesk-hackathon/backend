@@ -1,20 +1,10 @@
 from rest_framework import serializers
 
-from submission.serializers import *
-from patient_tracker.models import Admission, HealthSnapshot, Bed, BedType, \
-    Discharge, Deceased, Patient
+from patient_tracker.models import Admission, HealthSnapshot, \
+    Discharge, Deceased, Patient, OverallWellbeing, CommonSymptoms, \
+    GradedSymptoms, RelatedConditions
 
-
-class PatientSerializer(serializers.ModelSerializer):
-    submissions = SubmissionSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Patient
-        fields = [
-            'id',
-            'anon_patient_id',
-            'submissions'
-        ]
+from patient.serializers import PatientSerializer
 
 
 class AdmissionSerializer(serializers.ModelSerializer):
@@ -56,111 +46,28 @@ class AdmissionSerializer(serializers.ModelSerializer):
 
 class HealthSnapshotSerializer(serializers.ModelSerializer):
 
-    # user = serializers.HiddenField(
-    #     default=serializers.CurrentUserDefault()
-    # )
-
     class Meta:
         model = HealthSnapshot
         extra_kwargs = {
-            'created_at': {'read_only': True}
+            'created': {'read_only': True}
         }
         fields = [
-            # 'user',
-            'created_at',
-            'admission',
 
+            'created',
+            'admission',
             'blood_pressure_systolic',
             'blood_pressure_diastolic',
             'heart_rate',
             'breathing_rate',
             'temperature',
             'oxygen_saturation',
-
             'gcs_eye',
             'gcs_verbal',
             'gcs_motor',
-
             'observations',
-
             'severity',
         ]
 
-
-class BedSerializer(serializers.ModelSerializer):
-
-    current_admission = AdmissionSerializer(read_only=True)
-
-    class Meta:
-        model = Bed
-        fields = [
-            'id',
-            'bed_type',
-            'admissions',
-            'reason',
-            'state',
-            'bed_type',
-            'current_admission'
-        ]
-
-
-class BedTypeSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = BedType
-        extra_kwargs = {
-            'number_out_of_service': {'read_only': True},
-            'number_assigned': {'read_only': True},
-            'number_available': {'read_only': True},
-            'number_waiting': {'read_only': True},
-            'is_available': {'read_only': True},
-        }
-        fields = [
-            'id',
-            'name',
-            'total',
-
-            'number_out_of_service',
-            'number_assigned',
-            'number_available',
-            'number_waiting',
-            'is_available',
-        ]
-
-
-class LabelledValueSerializer(serializers.Serializer):
-    label = serializers.CharField()
-    value = serializers.FloatField()
-
-
-class AdmissionCountSerializer(serializers.Serializer):
-
-    date = serializers.DateField()
-    count = LabelledValueSerializer(many=True)
-
-
-class DashboardSerializer(serializers.Serializer):
-    def update(self, instance, validated_data):
-        pass
-
-    def create(self, validated_data):
-        pass
-
-    bed_availability = LabelledValueSerializer(many=True, required=False)
-    assignments = LabelledValueSerializer(many=True, )
-    global_availability = serializers.FloatField(required=False)
-    total_discharges = serializers.IntegerField(required=False)
-    average_duration = serializers.DurationField(required=False, allow_null=True)
-    admissions_per_day = AdmissionCountSerializer(many=True, required=False)
-
-    class Meta:
-        fields = [
-            'bed_availability',
-            'global_availability',
-            'total_discharges',
-            'assignments',
-            'average_duration'
-        ]
 
 
 class DischargeSerializer(serializers.ModelSerializer):
@@ -184,8 +91,79 @@ class DeceasedSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'admission',
-            'created_at',
+            'created',
             'registered_at',
             'notes',
             'registered_at',
         ]
+
+
+class OverallWellbeingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OverallWellbeing
+        fields = [
+            'id',
+            'overall_value',
+
+        ]
+
+
+class CommonSymptomsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommonSymptoms
+        fields = [
+            'id',
+
+            'chills',
+            'achy_joints_muscles',
+            'lost_taste_smell',
+            'congestion',
+            'stomach_disturbance',
+            'tiredness',
+            'headache',
+            'dry_cough',
+            'cough_with_sputum',
+            'nauseous',
+            'short_of_breath',
+            'sore_throat',
+            'fever',
+            'runny_nose',
+
+        ]
+
+
+class GradedSymptomsSerializer(serializers.ModelSerializer):
+    """
+    Symptoms that a patient grades on a scale of 0 to 10
+    """
+
+    class Meta:
+        model = GradedSymptoms
+        fields = [
+            'id',
+
+            'difficulty_breathing',
+            'anxious'
+        ]
+
+
+class RelatedConditionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RelatedConditions
+        fields = [
+            'id',
+
+
+            'heart_condition',
+            'high_blood_pressure',
+            'asthma',
+            'chronic_lung_problems',
+            'mild_diabetes',
+            'chronic_diabetes',
+            'current_chemo',
+            'past_chemo',
+            'take_immunosuppressants',
+            'pregnant',
+            'smoke'
+        ]
+

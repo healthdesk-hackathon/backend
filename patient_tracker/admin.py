@@ -4,9 +4,9 @@ from django.contrib import admin, messages
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 
-from patient_tracker.models import Admission, Bed, BedType, BedAssignment, HealthSnapshot, Discharge, Deceased, HealthSnapshotFile
+from patient.models import *
+from patient_tracker.models import *
 from project.admin import admin_site
-from submission.models import *  # , #Patient, Submission
 from django.utils.translation import gettext_lazy as _
 
 
@@ -97,11 +97,6 @@ class BedsAdmin(ActionsModelAdmin):
     set_to_cleaning.url_path = 'set-cleaning'
 
 
-class SubmissionInline(admin.TabularInline):
-    model = Submission
-    show_change_link = True
-
-
 class AssignmentInline(admin.TabularInline):
     model = BedAssignment
     extra = 0
@@ -151,7 +146,6 @@ class AdmissionAdmin(ActionsModelAdmin):
         super().__init__(*args, **kwargs)
 
         actions_details = (
-            'view_triage_submission',
             'discharge_patient',
             'deceased_patient',
         )
@@ -240,15 +234,6 @@ class AdmissionAdmin(ActionsModelAdmin):
     deceased_patient.url_path = 'deceased'
     deceased_patient.short_description = 'deceased'
 
-    def view_triage_submission(self, request, pk):
-        admission = Admission.objects.get(pk=pk)
-        submission = admission.patient.submissions.first()
-        return redirect(
-            reverse_lazy('admin:submission_submission_change', kwargs={'object_id': submission.pk}))
-
-    view_triage_submission.short_description = _('Admission Info')
-    view_triage_submission.url_path = 'view-triage-submission'
-
 
 class HealthSnapshotProxy(HealthSnapshot):
     class Meta:
@@ -265,7 +250,7 @@ class HealthSnapshotFileInline(admin.TabularInline):
 class HealthSnapshotAdmin(ActionsModelAdmin):
     actions_row = ('go_to_admission',)
 
-    date_hierarchy = 'created_at'
+    date_hierarchy = 'created'
 
     list_filter = [
         'severity'
@@ -304,13 +289,6 @@ class HealthSnapshotAdmin(ActionsModelAdmin):
 
     go_to_admission.short_description = _('Go to admission')
     go_to_admission.url_path = 'go-to-admission'
-
-
-"""
-
-Handle the triage submission view
-
-"""
 
 
 class PersonalDataInline(admin.TabularInline):
@@ -356,26 +334,17 @@ class PatientPhotoInline(admin.TabularInline):
     max_num = 1
 
 
-@admin.register(Submission, site=admin_site)
-class SubmissionAdmin(admin.ModelAdmin):
-
-    inlines = [
-        OverallWellbeingInline,
-        CommonSymptomsInline,
-        RelatedConditionsInline,
-        PersonalDataInline,
-        PatientPhotoInline,
-    ]
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return True
+class OverallWellbeingInline(admin.TabularInline):
+    model = OverallWellbeing
 
 
+class CommonSymptomsInline(admin.TabularInline):
+    model = CommonSymptoms
 
 
+class GradedSymptomsInline(admin.TabularInline):
+    model = GradedSymptoms
+
+
+class RelatedConditionsInline(admin.TabularInline):
+    model = RelatedConditions

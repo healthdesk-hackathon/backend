@@ -1,8 +1,11 @@
 import os
 import string
-import uuid
-from random import choice
 
+from common.base_models import ImmutableBaseModel, CurrentBaseModel
+from patient.models import Patient
+from equipment.models import Bed, BedType
+
+from random import choice
 from barcode import EAN13
 from barcode.writer import ImageWriter
 from django.conf import settings
@@ -15,34 +18,9 @@ from django.db.models import Count, F, Avg, Subquery, OuterRef, Max
 from django.utils import timezone as tz
 
 
-def prevent_update(pk):
-    """prevent a record from being saved if it has a pk
-    """
-
-    if pk:
-        raise ValidationError(
-            'record must not be updated'
-        )
-
-
-class Patient(models.Model):
-    """
-    Central crosswalk model to connect all related records for a unique patient
-    """
-
-    anon_patient_id = models.CharField(max_length=12, default=None, unique=True)
-
-    def __str__(self):
-        return self.anon_patient_id if self.anon_patient_id else 'Unknown'
-
-    @property
-    def current_admission(self):
-        return self.admissions.latest('-admitted_at')
-
-
-class BedAssignment(models.Model):
+class BedAssignment(ImmutableBaseModel):
     admission = models.ForeignKey('Admission', related_name='assignments', on_delete=models.CASCADE)
-    bed = models.ForeignKey('Bed', related_name='assignments', on_delete=models.CASCADE)
+    bed = models.ForeignKey('equipment.Bed', related_name='assignments', on_delete=models.CASCADE)
     assigned_at = models.DateTimeField(auto_now_add=True)
     unassigned_at = models.DateTimeField(null=True, blank=True, default=None)
 
@@ -78,7 +56,7 @@ class BedAssignment(models.Model):
         ordering = ['-assigned_at']
 
 
-class Admission(models.Model):
+class Admission(CurrentBaseModel):
     """
     Represents the admission into the hospital system, when the admins / triage have
     performed the initial steps for getting the patient into the system.
@@ -113,7 +91,8 @@ class Admission(models.Model):
             qs = self.accepted()
             qs = qs.order_by('admitted_at')
             qs = qs.extra(select={'day': 'date(admitted_at)'})
-            all_results = [[x.day, x.health_snapshots.order_by('created_at')[0].severity] for x in qs if x.health_snapshots.order_by('created_at').count() > 0]
+            all_results = [[x.day, x.health_snapshots.order_by(
+                'created')[0].severity] for x in qs if x.health_snapshots.order_by('created').count() > 0]
             admissions = {}
             for [day, label] in all_results:
                 if day not in admissions:
@@ -126,8 +105,6 @@ class Admission(models.Model):
 
     objects = AdmissionManager()
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
     local_barcode = models.CharField(max_length=13, unique=True, null=True)
     local_barcode_image = models.ImageField(null=True)
 
@@ -138,8 +115,8 @@ class Admission(models.Model):
 
     @property
     def patient_display(self):
-        if self.patient and self.patient.submissions.count() > 0:
-            data = self.patient.submissions.first().personal_data.first()
+        if self.patient and self.patient.patient_datas.count() > 0:
+            data = self.patient.patient_datas.first().personal_data.first()
             return f'{data.first_name} {data.last_name}'
         return self.id
 
@@ -224,25 +201,20 @@ class Admission(models.Model):
     deceased.boolean = True
 
     def __str__(self):
-        if not self.patient:
+        if not self.ppatient_dataatient:
             return f' - {str(self.id)[:12]}'
 
-        return f'{self.patient.anon_patient_id or ""} - {str(self.id)[:12]}'
+        return f'{str(self.id)[:12]}'
 
 
-class HealthSnapshot(models.Model):
+class HealthSnapshot(ImmutableBaseModel):
     class SeverityChoices(models.TextChoices):
         RED = 'RED', 'Red'
         YELLOW = 'YELLOW', 'Yellow'
         GREEN = 'GREEN', 'Green'
         WHITE = 'WHITE', 'White'
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='health_snapshots', on_delete=models.SET_NULL,
-                             null=True)
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
     admission = models.ForeignKey(Admission, on_delete=models.PROTECT, related_name='health_snapshots')
-    created_at = models.DateTimeField(auto_now_add=True)
 
     blood_pressure_systolic = models.PositiveIntegerField(null=True, blank=True)
     blood_pressure_diastolic = models.PositiveIntegerField(null=True, blank=True)
@@ -269,19 +241,18 @@ class HealthSnapshot(models.Model):
         return self.gcs_eye + self.gcs_verbal + self.gcs_motor
 
     def __str__(self):
-        return f'{self.created_at} - {self.severity or ""}'
+        return f'{self.created} - {self.severity or ""}'
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['-created']
 
 
-class Discharge(models.Model):
+class Discharge(ImmutableBaseModel):
     """
     Represents the discharge from the hospital system, when the admins / triage have
     completed any steps to release them.
     """
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     admission = models.ForeignKey(Admission, on_delete=models.CASCADE, null=False, related_name='discharge_events')
     discharged_at = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(null=True, blank=True)
@@ -300,164 +271,106 @@ class Discharge(models.Model):
             bed.leave_bed()
 
 
-class Deceased(models.Model):
+class Deceased(ImmutableBaseModel):
     """
     The patient is deceased. Any additional workflow can continue from here.
     Additionally, the bed is released.
     """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     admission = models.OneToOneField(Admission, on_delete=models.CASCADE, null=False, related_name='deceased_event')
     registered_at = models.DateTimeField(null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+
     cause = models.CharField(blank=False, null=False, max_length=100)
     notes = models.TextField(null=True, blank=True)
     notified_next_of_kin = models.BooleanField(default=False)
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='recorded_deceased', on_delete=models.SET_NULL,
-                             null=True)
 
 
-class Bed(models.Model):
-    """
-    Individual bed resources that can be assigned to a patient.
-    """
-
-    class ReasonChoices(models.TextChoices):
-        CLEANING = 'cleaning', 'Cleaning'
-        EQUIP_FAIL = 'equip fail', 'Equipment failure'
-        UNAVAILABLE = 'unavailable', 'Unavailable'
-
-    class StateChoices(models.IntegerChoices):
-        OUT_OF_SERVICE = 0, 'Out of service'
-        ASSIGNED = 1, 'Assigned'
-        AVAILABLE = 2, 'Available'
-
-    class BedManager(models.Manager):
-
-        def assigned(self):
-            return self.get_queryset().filter(state=Bed.StateChoices.ASSIGNED)
-
-        def available(self):
-            return self.get_queryset().filter(state=Bed.StateChoices.AVAILABLE)
-
-        def out_of_service(self):
-            return self.get_queryset().filter(state=Bed.StateChoices.OUT_OF_SERVICE)
-
-    objects = BedManager()
-
-    def delete(self, using=None, keep_parents=False):
-        if self.state == self.StateChoices.AVAILABLE:
-            raise ValidationError('You cannot delete a bed that is in use')
-        self.state = self.StateChoices.OUT_OF_SERVICE
-        self.reason = self.ReasonChoices.UNAVAILABLE
-        self.save()
-
-    bed_type = models.ForeignKey('BedType', on_delete=models.CASCADE, null=False, related_name='beds')
-
-    admissions = models.ManyToManyField(Admission, through=BedAssignment, related_name='assigned_beds')
-
-    reason = models.CharField(max_length=20, choices=ReasonChoices.choices, null=True, blank=True)
-    state = models.PositiveSmallIntegerField(choices=StateChoices.choices, default=StateChoices.AVAILABLE)
-
-    @property
-    def current_admission(self):
-        assignment = self.assignments.filter(unassigned_at__isnull=True).first()
-        if assignment:
-            return assignment.admission
-        return None
-
-    def clean(self):
-        if self.reason == self.StateChoices.OUT_OF_SERVICE and not self.state:
-            raise ValidationError('Please provide the reason for this bed to be out of service')
-
-    def save(self, **kwargs):
-        self.clean()
-        if self.state != self.StateChoices.OUT_OF_SERVICE:
-            self.reason = None
-        super().save(**kwargs)
-
-    @transaction.atomic
-    def leave_bed(self):
-        """The patient is leaving the bed. The current assignment to this patient can be removed.
-
-        The bed must be taken out of service for cleaning.
-        """
-        admission = self.current_admission
-
-        assignment = self.assignments.filter(admission=admission, unassigned_at__isnull=True).first()
-        if assignment:
-            assignment.unassigned_at = tz.now()
-            assignment.save()
-
-    def __str__(self):
-        return self.bed_type.name
-
-
-class BedType(models.Model):
-    """The numbers of each type of bed that a hospital has as resources.
-
-    We want a manager to be able to view the number of beds of each type / number occupied /
-    number out of service (cleaning)
-
-    """
-
-    class SeverityMatchChoices(models.TextChoices):
-        RED = 'RED', 'Red'
-        YELLOW = 'YELLOW', 'Yellow'
-        GREEN = 'GREEN', 'Green'
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=50, blank=False)
-    severity_match = models.CharField(max_length=6, blank=True, choices=SeverityMatchChoices.choices)
-    total = models.IntegerField(null=False)
-
-    def save(self, **kwargs):
-        super().save(**kwargs)
-        nb_to_create = self.total - self.beds.count()
-        if nb_to_create <= 0:
-            return
-        for i in range(nb_to_create):
-            b = Bed(bed_type=self)
-            b.save()
-
-    @property
-    def number_out_of_service(self):
-        return self.beds.out_of_service().count()
-
-    @property
-    def number_assigned(self):
-        return self.beds.assigned().count()
-
-    @property
-    def number_available(self):
-        return self.beds.available().count()
-
-    @property
-    def number_waiting(self):
-        return self.waiting_for_assigned_beds.count()
-
-    @property
-    def is_available(self):
-        """Check if this bed type is available for a new patient
-        """
-        return self.number_available > 0
-
-    def __str__(self):
-        return self.name
-
-    @staticmethod
-    def match_severity(severity):
-        bed_types = BedType.objects.filter(severity_match=severity)
-        if len(bed_types) == 0:
-            return None
-        else:
-            return bed_types[0]
-
-
-class HealthSnapshotFile(models.Model):
+class HealthSnapshotFile(ImmutableBaseModel):
     image_path = 'health_snapshot_file'
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    submission = models.ForeignKey(HealthSnapshot, on_delete=models.CASCADE, related_name='health_snapshot_files')
+    patient = models.ForeignKey(HealthSnapshot, on_delete=models.CASCADE, related_name='health_snapshot_files')
     file = models.ImageField(upload_to=image_path)
     notes = models.TextField()
+
+
+class OverallWellbeing(CurrentBaseModel):
+    """
+    Overall wellbeing, as the patient assesses themselves
+
+    Attributes:
+        overall_value: has a value 0 to 10 inclusive, representing how they feel
+                        (0 awful, 10 amazing)
+
+    Alternative is to reverse it:
+    How bad did you, or do you, feel?
+    Unnoticeable..Worst feeling ever
+
+
+    """
+
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name='overall_wellbeing')
+    overall_value = models.IntegerField(null=False, validators=[MaxValueValidator(10), MinValueValidator(0)])
+
+
+class CommonSymptoms(CurrentBaseModel):
+    """
+    Symptoms that a patient believes they have.
+
+    """
+
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name='common_symptoms')
+
+    chills = models.BooleanField(default=False, null=False)
+    achy_joints_muscles = models.BooleanField(default=False, null=False)
+    lost_taste_smell = models.BooleanField(default=False, null=False)
+    congestion = models.BooleanField(default=False, null=False)
+    stomach_disturbance = models.BooleanField(default=False, null=False)
+    tiredness = models.BooleanField(default=False, null=False)
+    headache = models.BooleanField(default=False, null=False)
+    dry_cough = models.BooleanField(default=False, null=False)
+    cough_with_sputum = models.BooleanField(default=False, null=False)
+    nauseous = models.BooleanField(default=False, null=False)
+    short_of_breath = models.BooleanField(default=False, null=False)
+    sore_throat = models.BooleanField(default=False, null=False)
+    fever = models.BooleanField(default=False, null=False)
+    runny_nose = models.BooleanField(default=False, null=False)
+
+
+class GradedSymptoms(CurrentBaseModel):
+    """
+    Symptoms that a patient grades on a scale of 0 to 10
+    """
+
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name='graded_symptoms')
+
+    # How hard is it to breath
+    difficulty_breathing = models.IntegerField(null=False, validators=[MaxValueValidator(10), MinValueValidator(0)])
+    # How anxious do you feel?
+    anxious = models.IntegerField(null=False, validators=[MaxValueValidator(10), MinValueValidator(0)])
+
+
+class RelatedConditions(CurrentBaseModel):
+    """
+    How is your health?
+    """
+
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name='related_conditions')
+
+    heart_condition = models.BooleanField(null=False, default=False)
+    high_blood_pressure = models.BooleanField(null=False, default=False)
+    asthma = models.BooleanField(null=False, default=False)
+    chronic_lung_problems = models.BooleanField(null=False, default=False)
+    mild_diabetes = models.BooleanField(null=False, default=False)
+    chronic_diabetes = models.BooleanField(null=False, default=False)
+    current_chemo = models.BooleanField(null=False, default=False)
+    past_chemo = models.BooleanField(null=False, default=False)
+    take_immunosuppressants = models.BooleanField(null=False, default=False)
+    pregnant = models.BooleanField(null=False, default=False)
+    smoke = models.BooleanField(null=False, default=False)
+
+
+
+
+
+

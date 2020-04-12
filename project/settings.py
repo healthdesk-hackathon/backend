@@ -72,9 +72,11 @@ INSTALLED_APPS = [
 
     'custom_auth',
     'api',
+    'dashboard',
     'dummy',
-    'submission',
-    'patient_tracker'
+    'equipment',
+    'patient',
+    'patient_tracker',
 ]
 
 MIDDLEWARE = [
