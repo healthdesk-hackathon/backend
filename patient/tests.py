@@ -1,7 +1,8 @@
 from django.test import TestCase
 
-from patient_tracker.models import Patient, Admission, BedType, Bed
-from submission.models import Submission, InitialHealthSnapshot
+from patient_tracker.models import Admission, HealthSnapshot
+from equipment.models import BedType, Bed
+from patient.models import Patient
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 
 
@@ -16,22 +17,20 @@ class AutoAssignBedTestCase(TestCase):
 
         patient = Patient(anon_patient_id='12345')
         patient.save()
-        submission = Submission(patient=patient)
-        submission.save()
 
-        init_hs = InitialHealthSnapshot(submission=submission,
-                                        blood_pressure_systolic=3,
-                                        blood_pressure_diastolic=4,
-                                        heart_rate=5,
-                                        breathing_rate=6,
-                                        temperature=7,
-                                        oxygen_saturation=8,
-                                        gcs_eye=1,
-                                        gcs_verbal=12,
-                                        gcs_motor=3,
-                                        observations="Text notes",
-                                        severity=InitialHealthSnapshot.SeverityChoices.YELLOW,
-                                        )
+        init_hs = HealthSnapshot(
+            blood_pressure_systolic=3,
+            blood_pressure_diastolic=4,
+            heart_rate=5,
+            breathing_rate=6,
+            temperature=7,
+            oxygen_saturation=8,
+            gcs_eye=1,
+            gcs_verbal=12,
+            gcs_motor=3,
+            observations="Text notes",
+            severity=HealthSnapshot.SeverityChoices.YELLOW,
+        )
 
         init_hs.save()
 
@@ -47,22 +46,20 @@ class AutoAssignBedTestCase(TestCase):
 
         patient = Patient(anon_patient_id='12346')
         patient.save()
-        submission = Submission(patient=patient)
-        submission.save()
 
-        init_hs = InitialHealthSnapshot(submission=submission,
-                                        blood_pressure_systolic=3,
-                                        blood_pressure_diastolic=4,
-                                        heart_rate=5,
-                                        breathing_rate=6,
-                                        temperature=7,
-                                        oxygen_saturation=8,
-                                        gcs_eye=1,
-                                        gcs_verbal=12,
-                                        gcs_motor=3,
-                                        observations="Text notes",
-                                        severity='BLACK',
-                                        )
+        init_hs = HealthSnapshot(
+            blood_pressure_systolic=3,
+            blood_pressure_diastolic=4,
+            heart_rate=5,
+            breathing_rate=6,
+            temperature=7,
+            oxygen_saturation=8,
+            gcs_eye=1,
+            gcs_verbal=12,
+            gcs_motor=3,
+            observations="Text notes",
+            severity='BLACK',
+        )
 
         init_hs.save()
 

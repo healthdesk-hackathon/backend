@@ -69,7 +69,6 @@ class HealthSnapshotSerializer(serializers.ModelSerializer):
         ]
 
 
-
 class DischargeSerializer(serializers.ModelSerializer):
 
     class Meta:

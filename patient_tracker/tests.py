@@ -3,6 +3,7 @@ from django.test import TestCase
 from patient_tracker.models import Admission, BedType, Bed
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 
+
 class PatientTrackerTestCase(TestCase):
     def setUp(self):
         BedType.objects.create(name="Intensive Care Unit", total=2)
@@ -51,7 +52,6 @@ class PatientTrackerTestCase(TestCase):
         self.assertEqual(inter.number_available, 3)
         self.assertEqual(inter.number_out_of_service, 0)
 
-
         # Assign a new bed to the admission
         admission.assign_bed(bed_type=inter)
         # The number of available intermediate beds should be reduced by one as one is assigned
@@ -67,7 +67,7 @@ class PatientTrackerTestCase(TestCase):
 
         admission = Admission.objects.create()
         icu = BedType.objects.get(name='Intensive Care Unit')
-        inter = BedType.objects.get(name='Intermediate Care')
+        # inter = BedType.objects.get(name='Intermediate Care')
 
         admission.assign_bed(bed_type=icu)
         self.assertEqual(icu.number_assigned, 1)

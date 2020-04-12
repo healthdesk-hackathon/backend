@@ -1,7 +1,5 @@
 from rest_framework import serializers
 
-from dashboard.models import Dashboard
-
 
 class LabelledValueSerializer(serializers.Serializer):
     label = serializers.CharField()

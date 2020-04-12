@@ -1,8 +1,12 @@
 from django.contrib import admin
 
 from django.db import models
-from patient.models import PersonalData, Phone, \
+from patient.models import Patient, PersonalData, Phone, \
     NextOfKinContact, PatientPhoto
+
+
+class PatientInline(admin.TabularInline):
+    model = Patient
 
 
 class PersonalDataInline(admin.TabularInline):

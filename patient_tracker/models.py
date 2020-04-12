@@ -285,7 +285,6 @@ class Deceased(ImmutableBaseModel):
     notified_next_of_kin = models.BooleanField(default=False)
 
 
-
 class HealthSnapshotFile(ImmutableBaseModel):
     image_path = 'health_snapshot_file'
 

@@ -3,7 +3,6 @@ from rest_framework import viewsets, permissions
 from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
 
-from dashboard.models import Dashboard
 from dashboard.serializers import DashboardSerializer
 
 dashboard_permissions = [permissions.IsAuthenticated]

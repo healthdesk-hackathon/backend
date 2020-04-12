@@ -5,7 +5,6 @@ from rest_framework import viewsets, permissions, mixins
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from equipment.models import Bed, BedType
 from patient_tracker.serializers import *
 from patient_tracker.models import *
 
