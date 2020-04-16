@@ -77,6 +77,8 @@ INSTALLED_APPS = [
     'equipment',
     'patient',
     'patient_tracker',
+    'simple_history',
+
 ]
 
 MIDDLEWARE = [
