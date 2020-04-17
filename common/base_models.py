@@ -1,3 +1,4 @@
+import sys
 import uuid
 
 from model_utils.models import TimeStampedModel, SoftDeletableModel
@@ -5,6 +6,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from simple_history.models import HistoricalRecords
+
+TEST = 'test' in sys.argv
 
 
 class ImmutableBaseModel(SoftDeletableModel, TimeStampedModel):
@@ -22,6 +25,11 @@ class ImmutableBaseModel(SoftDeletableModel, TimeStampedModel):
       is_removed -- True if the instance is to be considered deleted and ignored in queries
     """
 
+    def __init__(self, *args, **kwargs):
+        if not hasattr(self, '_current_user'):
+            self._current_user = None
+        super().__init__(*args, **kwargs)
+
     class Meta:
         abstract = True
 
@@ -29,18 +37,24 @@ class ImmutableBaseModel(SoftDeletableModel, TimeStampedModel):
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
                                 null=False, related_name='%(class)s_creator')
 
+    @property
+    def current_user(self):
+        return self._current_user
+
+    @current_user.setter
+    def current_user(self, value):
+        self._current_user = value
+
     def prevent_update(self):
         """prevent a record from being saved if it has a pk"""
         if self.pk:
             raise ValidationError('record must not be updated')
 
-    def save_model(self, request, obj, form, change):
-        self.prevent_update()
-
-        if not obj.pk:
+    def save(self, **kwargs):
+        if not self.creator_id:
             # Only set added_by during the first save.
-            obj.created = request.user
-        super().save_model(request, obj, form, change)
+            self.creator = self.current_user
+        super().save(**kwargs)
 
 
 class CurrentBaseModel(TimeStampedModel):
@@ -64,6 +78,11 @@ class CurrentBaseModel(TimeStampedModel):
     View (https://django-simple-history.readthedocs.io/en/latest/) for docs for django-simple-history
     """
 
+    def __init__(self, *args, **kwargs):
+        if not hasattr(self, '_current_user'):
+            self._current_user = None
+        super().__init__(*args, **kwargs)
+
     class Meta:
         abstract = True
 
@@ -74,11 +93,19 @@ class CurrentBaseModel(TimeStampedModel):
                                  null=True, related_name='%(class)s_modifier')
     history = HistoricalRecords(inherit=True)
 
-    def save_model(self, request, obj, form, change):
-        if obj.pk:
-            # Set the modifier on every save
-            obj.modifier = request.user
-        else:
+    @property
+    def current_user(self):
+        return self._current_user
+
+    @current_user.setter
+    def current_user(self, value):
+        self._current_user = value
+
+    def save(self, **kwargs):
+        if not self.creator_id:
             # Only set added_by during the first save.
-            obj.created = request.user
-        super().save_model(request, obj, form, change)
+            self.creator = self.current_user
+        else:
+            # Set the modifier on every save
+            self.modifier = self.current_user
+        super().save(**kwargs)

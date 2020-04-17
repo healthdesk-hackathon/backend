@@ -1,20 +1,22 @@
+from common.base_admin import SaveCurrentUser
+from django.utils.translation import gettext_lazy as _
+from project.admin import admin_site
+from patient_tracker.models import Admission, BedAssignment, HealthSnapshot, \
+    HealthSnapshotFile, OverallWellbeing, GradedSymptoms, RelatedConditions, CommonSymptoms
 from admin_actions.admin import ActionsModelAdmin
 from django.contrib import admin, messages
 
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 
-from patient.models import *
-from patient_tracker.models import *
-from project.admin import admin_site
-from django.utils.translation import gettext_lazy as _
+from equipment.models import BedType, Bed
 
 
-class AdmissionInline(admin.TabularInline):
+class AdmissionInline(admin.TabularInline, SaveCurrentUser):
     model = Admission
 
 
-class AssignmentInline(admin.TabularInline):
+class AssignmentInline(admin.TabularInline, SaveCurrentUser):
     model = BedAssignment
     extra = 0
 
@@ -29,7 +31,7 @@ class AssignmentInline(admin.TabularInline):
     readonly_fields = fields
 
 
-class HealthSnapshotInline(admin.TabularInline):
+class HealthSnapshotInline(admin.TabularInline, SaveCurrentUser):
     model = HealthSnapshot
     extra = 0
     fields = [
@@ -57,7 +59,7 @@ class HealthSnapshotInline(admin.TabularInline):
 
 
 @admin.register(Admission, site=admin_site)
-class AdmissionAdmin(ActionsModelAdmin):
+class AdmissionAdmin(ActionsModelAdmin, SaveCurrentUser):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -71,7 +73,10 @@ class AdmissionAdmin(ActionsModelAdmin):
         try:
             for bed_type in BedType.objects.all():
                 action_slug = '-'.join(bed_type.name.lower().split(' '))
-                def action(request, pk, bed_type=bed_type): return self.bed_type_dispatch_action(request, pk, bed_type)
+
+                def action(request, pk, bed_type=bed_type):
+                    return self.bed_type_dispatch_action(request, pk, bed_type)
+
                 setattr(action, 'short_description', f'Assign to bed: {bed_type.name}')
                 setattr(action, 'url_path', f'set-{action_slug}')
 
@@ -158,13 +163,13 @@ class HealthSnapshotProxy(HealthSnapshot):
         proxy = True
 
 
-class HealthSnapshotFileInline(admin.TabularInline):
+class HealthSnapshotFileInline(admin.TabularInline, SaveCurrentUser):
     model = HealthSnapshotFile
     extra = 1
 
 
 @admin.register(HealthSnapshotProxy, site=admin_site)
-class HealthSnapshotAdmin(ActionsModelAdmin):
+class HealthSnapshotAdmin(ActionsModelAdmin, SaveCurrentUser):
     actions_row = ('go_to_admission',)
 
     date_hierarchy = 'created'
@@ -208,39 +213,25 @@ class HealthSnapshotAdmin(ActionsModelAdmin):
     go_to_admission.url_path = 'go-to-admission'
 
 
-class OverallWellbeingInline(admin.TabularInline):
+class OverallWellbeingInline(admin.TabularInline, SaveCurrentUser):
     model = OverallWellbeing
     extra = 1
 
 
-class CommonSymptomsInline(admin.TabularInline):
+class CommonSymptomsInline(admin.TabularInline, SaveCurrentUser):
     model = CommonSymptoms
     extra = 1
 
 
-class GradedSymptomsInline(admin.TabularInline):
+class GradedSymptomsInline(admin.TabularInline, SaveCurrentUser):
     model = GradedSymptoms
     extra = 1
 
 
-class RelatedConditionsInline(admin.TabularInline):
+class RelatedConditionsInline(admin.TabularInline, SaveCurrentUser):
     model = RelatedConditions
     extra = 1
     min_num = 0
     max_num = 1
 
 
-class OverallWellbeingInline(admin.TabularInline):
-    model = OverallWellbeing
-
-
-class CommonSymptomsInline(admin.TabularInline):
-    model = CommonSymptoms
-
-
-class GradedSymptomsInline(admin.TabularInline):
-    model = GradedSymptoms
-
-
-class RelatedConditionsInline(admin.TabularInline):
-    model = RelatedConditions

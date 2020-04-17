@@ -1,13 +1,18 @@
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 
-from patient_tracker.models import Admission, BedType, Bed
+from patient.models import Patient
+from patient_tracker.models import Admission
+from equipment.models import BedType, Bed
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from common.base_tests import TestUser
 
 
-class PatientTrackerTestCase(TestCase):
+class PatientTrackerTestCase(TestCase, TestUser):
+
     def setUp(self):
-        BedType.objects.create(name="Intensive Care Unit", total=2)
-        BedType.objects.create(name="Intermediate Care", total=3)
+
+        BedType.objects.create(name="Intensive Care Unit", severity_match='RED', total=2, current_user=self.test_user)
+        BedType.objects.create(name="Intermediate Care", severity_match='YELLOW', total=3, current_user=self.test_user)
         return
 
     def test_autocreate_beds(self):
@@ -17,7 +22,8 @@ class PatientTrackerTestCase(TestCase):
 
     def test_admit_patient(self):
 
-        admission = Admission.objects.create()
+        patient = Patient.objects.create(identifier='12346', current_user=self.test_user)
+        admission = Admission.objects.create(patient=patient, current_user=self.test_user)
         icu = BedType.objects.get(name='Intensive Care Unit')
 
         assigned_bed = admission.assign_bed(icu)
@@ -26,20 +32,21 @@ class PatientTrackerTestCase(TestCase):
         self.assertEqual(icu.number_available, 1)
         self.assertEqual(icu.number_out_of_service, 0)
 
-        admission2 = Admission.objects.create()
+        admission2 = Admission.objects.create(patient=patient, current_user=self.test_user)
         admission2.assign_bed(icu)
         self.assertEqual(icu.number_assigned, 2)
         self.assertEqual(icu.number_available, 0)
         self.assertEqual(icu.number_out_of_service, 0)
 
-        admission3 = Admission.objects.create()
+        admission3 = Admission.objects.create(patient=patient, current_user=self.test_user)
 
         self.assertRaises(Bed.DoesNotExist, lambda: admission3.assign_bed(icu))
         self.assertEqual(icu.number_assigned, 2)
         self.assertEqual(icu.number_available, 0)
 
     def test_change_bed(self):
-        admission = Admission.objects.create()
+        patient = Patient.objects.create(identifier='12347', current_user=self.test_user)
+        admission = Admission.objects.create(patient=patient, current_user=self.test_user)
         icu = BedType.objects.get(name='Intensive Care Unit')
         inter = BedType.objects.get(name='Intermediate Care')
 
@@ -65,7 +72,8 @@ class PatientTrackerTestCase(TestCase):
 
     def test_discharge(self):
 
-        admission = Admission.objects.create()
+        patient = Patient.objects.create(identifier='12346', current_user=self.test_user)
+        admission = Admission.objects.create(patient=patient, current_user=self.test_user)
         icu = BedType.objects.get(name='Intensive Care Unit')
         # inter = BedType.objects.get(name='Intermediate Care')
 

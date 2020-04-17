@@ -113,7 +113,7 @@ class BedType(CurrentBaseModel):
         if nb_to_create <= 0:
             return
         for i in range(nb_to_create):
-            b = Bed(bed_type=self)
+            b = Bed(bed_type=self, current_user=self.current_user)
             b.save()
 
     @property

@@ -5,20 +5,26 @@ from equipment.models import BedType, Bed
 from patient.models import Patient
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 
+from common.base_tests import TestUser
 
-class AutoAssignBedTestCase(TestCase):
+
+class AutoAssignBedTestCase(TestCase, TestUser):
     def setUp(self):
-        BedType.objects.create(name="Intensive Care Unit", severity_match="RED", total=2)
-        BedType.objects.create(name="Intermediate Care", severity_match="YELLOW", total=3)
-        BedType.objects.create(name="Recovery", severity_match="GREEN", total=3)
+
+        BedType.objects.create(name="Intensive Care Unit", severity_match="RED", total=2, current_user=self.test_user)
+        BedType.objects.create(name="Intermediate Care", severity_match="YELLOW", total=3, current_user=self.test_user)
+        BedType.objects.create(name="Recovery", severity_match="GREEN", total=3, current_user=self.test_user)
         return
 
     def test_auto_assign_bed_on_admission(self):
 
-        patient = Patient(anon_patient_id='12345')
+        patient = Patient(identifier='12345', current_user=self.test_user)
         patient.save()
 
+        admission = Admission.objects.create(patient=patient, current_user=self.test_user)
+
         init_hs = HealthSnapshot(
+            admission=admission,
             blood_pressure_systolic=3,
             blood_pressure_diastolic=4,
             heart_rate=5,
@@ -30,6 +36,7 @@ class AutoAssignBedTestCase(TestCase):
             gcs_motor=3,
             observations="Text notes",
             severity=HealthSnapshot.SeverityChoices.YELLOW,
+            current_user=self.test_user
         )
 
         init_hs.save()
@@ -44,10 +51,13 @@ class AutoAssignBedTestCase(TestCase):
 
     def test_no_auto_assign_bed_if_no_match(self):
 
-        patient = Patient(anon_patient_id='12346')
+        patient = Patient(identifier='12346', current_user=self.test_user)
         patient.save()
 
+        admission = Admission.objects.create(patient=patient, current_user=self.test_user)
+
         init_hs = HealthSnapshot(
+            admission=admission,
             blood_pressure_systolic=3,
             blood_pressure_diastolic=4,
             heart_rate=5,
@@ -59,6 +69,7 @@ class AutoAssignBedTestCase(TestCase):
             gcs_motor=3,
             observations="Text notes",
             severity='BLACK',
+            current_user=self.test_user
         )
 
         init_hs.save()

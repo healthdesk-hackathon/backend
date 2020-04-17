@@ -169,17 +169,17 @@ class Admission(CurrentBaseModel):
         new_bed = bed_type.beds.available().first()
         if not new_bed:
             raise Bed.DoesNotExist(f'There are no bed available for this type: {bed_type.name}')
-        assignment = BedAssignment(admission=self, bed=new_bed)
+        assignment = BedAssignment(admission=self, bed=new_bed, current_user=self.current_user)
         assignment.save()
         return new_bed
 
     def discharge(self):
-        res = Discharge(admission=self)
+        res = Discharge(admission=self, current_user=self.current_user)
         res.save()
         return res
 
     def record_deceased(self):
-        res = Deceased(admission=self)
+        res = Deceased(admission=self, current_user=self.current_user)
         res.save()
         return res
 
@@ -201,7 +201,7 @@ class Admission(CurrentBaseModel):
     deceased.boolean = True
 
     def __str__(self):
-        if not self.ppatient_dataatient:
+        if not self.patient_data:
             return f' - {str(self.id)[:12]}'
 
         return f'{str(self.id)[:12]}'
