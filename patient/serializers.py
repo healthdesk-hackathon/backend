@@ -1,36 +1,36 @@
 from rest_framework import serializers
 
 from patient.models import Patient, PersonalData, NextOfKinContact, Phone
+from common.base_serializers import ImmutableSerializerMeta, CurrentSerializerMeta
 
 
 class PatientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Patient
-        fields = [
-            'id',
-
+        fields = ImmutableSerializerMeta.base_fields + [
+            'identifier',
+            'id_type'
         ]
 
 
 class PersonalDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = PersonalData
-        fields = [
-            'id',
+        fields = CurrentSerializerMeta.base_fields + [
+            'patient_id',
             'first_name',
             'last_name',
             'gender',
             'date_of_birth',
-
         ]
 
 
 class PhoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Phone
-        fields = [
-            'id',
+        fields = CurrentSerializerMeta.base_fields + [
+            'patient_id',
             'phone_number',
             'phone_type',
         ]
@@ -40,12 +40,9 @@ class NextOfKinContactSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NextOfKinContact
-        extra_kwargs = {
-            'created': {'read_only': True}
-        }
-        fields = [
 
-
+        fields = CurrentSerializerMeta.base_fields + [
+            'patient_id',
             'first_name',
             'last_name',
             'title',

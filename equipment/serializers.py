@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from equipment.models import Bed, BedType
 from patient_tracker.serializers import AdmissionSerializer
+from common.base_serializers import ImmutableSerializerMeta, CurrentSerializerMeta
 
 
 class BedSerializer(serializers.ModelSerializer):
@@ -10,14 +11,12 @@ class BedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Bed
-        fields = [
-            'id',
+        fields = CurrentSerializerMeta.base_fields + [
             'bed_type',
             'admissions',
             'reason',
             'state',
-            'bed_type',
-            'current_admission'
+            'current_admission',
         ]
 
 
@@ -32,8 +31,7 @@ class BedTypeSerializer(serializers.ModelSerializer):
             'number_waiting': {'read_only': True},
             'is_available': {'read_only': True},
         }
-        fields = [
-            'id',
+        fields = CurrentSerializerMeta.base_fields + [
             'name',
             'total',
 

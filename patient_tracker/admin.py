@@ -1,4 +1,4 @@
-from common.base_admin import SaveCurrentUser
+from common.base_admin import SaveCurrentUser, SaveCurrentUserAdmin
 from django.utils.translation import gettext_lazy as _
 from project.admin import admin_site
 from patient_tracker.models import Admission, BedAssignment, HealthSnapshot, \
@@ -12,11 +12,11 @@ from django.urls import reverse_lazy
 from equipment.models import BedType, Bed
 
 
-class AdmissionInline(admin.TabularInline, SaveCurrentUser):
+class AdmissionInline(SaveCurrentUser, admin.TabularInline):
     model = Admission
 
 
-class AssignmentInline(admin.TabularInline, SaveCurrentUser):
+class AssignmentInline(SaveCurrentUser, admin.TabularInline):
     model = BedAssignment
     extra = 0
 
@@ -31,7 +31,7 @@ class AssignmentInline(admin.TabularInline, SaveCurrentUser):
     readonly_fields = fields
 
 
-class HealthSnapshotInline(admin.TabularInline, SaveCurrentUser):
+class HealthSnapshotInline(SaveCurrentUser, admin.TabularInline):
     model = HealthSnapshot
     extra = 0
     fields = [
@@ -59,7 +59,7 @@ class HealthSnapshotInline(admin.TabularInline, SaveCurrentUser):
 
 
 @admin.register(Admission, site=admin_site)
-class AdmissionAdmin(ActionsModelAdmin, SaveCurrentUser):
+class AdmissionAdmin(SaveCurrentUserAdmin, admin.ModelAdmin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -163,13 +163,13 @@ class HealthSnapshotProxy(HealthSnapshot):
         proxy = True
 
 
-class HealthSnapshotFileInline(admin.TabularInline, SaveCurrentUser):
+class HealthSnapshotFileInline(SaveCurrentUser, admin.TabularInline):
     model = HealthSnapshotFile
     extra = 1
 
 
 @admin.register(HealthSnapshotProxy, site=admin_site)
-class HealthSnapshotAdmin(ActionsModelAdmin, SaveCurrentUser):
+class HealthSnapshotAdmin(SaveCurrentUserAdmin, admin.ModelAdmin):
     actions_row = ('go_to_admission',)
 
     date_hierarchy = 'created'
@@ -195,6 +195,8 @@ class HealthSnapshotAdmin(ActionsModelAdmin, SaveCurrentUser):
 
     list_display_links = []
 
+    readonly_fields = []
+
     def has_add_permission(self, request):
         return False
 
@@ -213,22 +215,22 @@ class HealthSnapshotAdmin(ActionsModelAdmin, SaveCurrentUser):
     go_to_admission.url_path = 'go-to-admission'
 
 
-class OverallWellbeingInline(admin.TabularInline, SaveCurrentUser):
+class OverallWellbeingInline(SaveCurrentUser, admin.TabularInline):
     model = OverallWellbeing
     extra = 1
 
 
-class CommonSymptomsInline(admin.TabularInline, SaveCurrentUser):
+class CommonSymptomsInline(SaveCurrentUser, admin.TabularInline):
     model = CommonSymptoms
     extra = 1
 
 
-class GradedSymptomsInline(admin.TabularInline, SaveCurrentUser):
+class GradedSymptomsInline(SaveCurrentUser, admin.TabularInline):
     model = GradedSymptoms
     extra = 1
 
 
-class RelatedConditionsInline(admin.TabularInline, SaveCurrentUser):
+class RelatedConditionsInline(SaveCurrentUser, admin.TabularInline):
     model = RelatedConditions
     extra = 1
     min_num = 0

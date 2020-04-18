@@ -1,10 +1,13 @@
 from rest_framework import serializers
 
+from patient.models import Patient
 from patient_tracker.models import Admission, HealthSnapshot, \
     Discharge, Deceased, Patient, OverallWellbeing, CommonSymptoms, \
     GradedSymptoms, RelatedConditions
 
 from patient.serializers import PatientSerializer
+
+from common.base_serializers import ImmutableSerializerMeta
 
 
 class AdmissionSerializer(serializers.ModelSerializer):
@@ -16,6 +19,7 @@ class AdmissionSerializer(serializers.ModelSerializer):
         model = Admission
 
         extra_kwargs = {
+            'patient_id': {'read_only': True},
             'local_barcode': {'read_only': True},
             'local_barcode_image': {'read_only': True},
             'patient': {'read_only': True},
@@ -28,8 +32,7 @@ class AdmissionSerializer(serializers.ModelSerializer):
 
         patient = PatientSerializer()
 
-        fields = [
-            'id',
+        fields = ImmutableSerializerMeta.base_fields + [
             'local_barcode',
             'local_barcode_image',
             'patient',
@@ -48,13 +51,10 @@ class HealthSnapshotSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HealthSnapshot
-        extra_kwargs = {
-            'created': {'read_only': True}
-        }
-        fields = [
 
-            'created',
-            'admission',
+        fields = ImmutableSerializerMeta.base_fields + [
+            'admission_id',
+
             'blood_pressure_systolic',
             'blood_pressure_diastolic',
             'heart_rate',
@@ -74,9 +74,8 @@ class DischargeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discharge
 
-        fields = [
-            'id',
-            'admission',
+        fields = ImmutableSerializerMeta.base_fields + [
+            'admission_id',
             'discharged_at',
             'notes',
         ]
@@ -87,31 +86,27 @@ class DeceasedSerializer(serializers.ModelSerializer):
     class Meta:
         model = Deceased
 
-        fields = [
-            'id',
-            'admission',
-            'created',
+        fields = ImmutableSerializerMeta.base_fields + [
+            'admission_id',
             'registered_at',
             'notes',
-            'registered_at',
         ]
 
 
 class OverallWellbeingSerializer(serializers.ModelSerializer):
     class Meta:
         model = OverallWellbeing
-        fields = [
-            'id',
+        fields = ImmutableSerializerMeta.base_fields + [
+            'admission_id',
             'overall_value',
-
         ]
 
 
 class CommonSymptomsSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommonSymptoms
-        fields = [
-            'id',
+        fields = ImmutableSerializerMeta.base_fields + [
+            'admission_id',
 
             'chills',
             'achy_joints_muscles',
@@ -127,7 +122,6 @@ class CommonSymptomsSerializer(serializers.ModelSerializer):
             'sore_throat',
             'fever',
             'runny_nose',
-
         ]
 
 
@@ -138,8 +132,8 @@ class GradedSymptomsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GradedSymptoms
-        fields = [
-            'id',
+        fields = ImmutableSerializerMeta.base_fields + [
+            'admission_id',
 
             'difficulty_breathing',
             'anxious'
@@ -149,9 +143,8 @@ class GradedSymptomsSerializer(serializers.ModelSerializer):
 class RelatedConditionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = RelatedConditions
-        fields = [
-            'id',
-
+        fields = ImmutableSerializerMeta.base_fields + [
+            'admission_id',
 
             'heart_condition',
             'high_blood_pressure',

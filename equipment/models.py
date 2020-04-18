@@ -50,15 +50,16 @@ class Bed(CurrentBaseModel):
         self.save()
 
     bed_type = models.ForeignKey('BedType', on_delete=models.CASCADE, null=False, related_name='beds')
-
-    # admissions = models.ManyToManyField(Admission, through=BedAssignment, related_name='assigned_beds')
-
     reason = models.CharField(max_length=20, choices=ReasonChoices.choices, null=True, blank=True)
     state = models.PositiveSmallIntegerField(choices=StateChoices.choices, default=StateChoices.AVAILABLE)
 
     @property
+    def current_assignment(self):
+        return self.assignments.filter(unassigned_at__isnull=True).first()
+
+    @property
     def current_admission(self):
-        assignment = self.assignments.filter(unassigned_at__isnull=True).first()
+        assignment = self.current_assignment
         if assignment:
             return assignment.admission
         return None
@@ -79,9 +80,7 @@ class Bed(CurrentBaseModel):
 
         The bed must be taken out of service for cleaning.
         """
-        admission = self.current_admission
-
-        assignment = self.assignments.filter(admission=admission, unassigned_at__isnull=True).first()
+        assignment = self.current_assignment
         if assignment:
             assignment.unassigned_at = tz.now()
             assignment.save()

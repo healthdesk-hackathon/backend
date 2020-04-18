@@ -108,8 +108,7 @@ class Admission(CurrentBaseModel):
     local_barcode = models.CharField(max_length=13, unique=True, null=True)
     local_barcode_image = models.ImageField(null=True)
 
-    # TODO: remove null=True below or fix the __str__ method
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='admissions', null=True)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='admissions', null=False)
     admitted_at = models.DateTimeField(null=True, default=None)
     admitted = models.BooleanField(default=True)
 
@@ -201,9 +200,6 @@ class Admission(CurrentBaseModel):
     deceased.boolean = True
 
     def __str__(self):
-        if not self.patient_data:
-            return f' - {str(self.id)[:12]}'
-
         return f'{str(self.id)[:12]}'
 
 

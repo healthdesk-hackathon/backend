@@ -7,23 +7,23 @@ from patient.models import Patient, PersonalData, Phone, \
 from common.base_admin import SaveCurrentUser
 
 
-class PatientInline(admin.TabularInline, SaveCurrentUser):
+class PatientInline(SaveCurrentUser, admin.TabularInline):
     model = Patient
 
 
-class PersonalDataInline(admin.TabularInline, SaveCurrentUser):
+class PersonalDataInline(SaveCurrentUser, admin.TabularInline):
     model = PersonalData
 
 
-class PhoneInline(admin.TabularInline, SaveCurrentUser):
+class PhoneInline(SaveCurrentUser, admin.TabularInline):
     model = Phone
 
 
-class NextOfKinContactInline(admin.TabularInline, SaveCurrentUser):
+class NextOfKinContactInline(SaveCurrentUser, admin.TabularInline):
     model = NextOfKinContact
 
 
-class PatientPhotoInline(admin.TabularInline, SaveCurrentUser):
+class PatientPhotoInline(SaveCurrentUser, admin.TabularInline):
     model = PatientPhoto
     extra = 1
     min_num = 0

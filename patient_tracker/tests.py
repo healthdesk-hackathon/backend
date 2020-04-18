@@ -15,11 +15,6 @@ class PatientTrackerTestCase(TestCase, TestUser):
         BedType.objects.create(name="Intermediate Care", severity_match='YELLOW', total=3, current_user=self.test_user)
         return
 
-    def test_autocreate_beds(self):
-        self.assertEqual(Bed.objects.filter(bed_type__name="Intensive Care Unit").count(), 2)
-        self.assertEqual(Bed.objects.filter(bed_type__name="Intermediate Care").count(), 3)
-        self.assertEqual(Bed.objects.available().count(), 5)
-
     def test_admit_patient(self):
 
         patient = Patient.objects.create(identifier='12346', current_user=self.test_user)

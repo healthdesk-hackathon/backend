@@ -45,6 +45,9 @@ class AutoAssignBedTestCase(TestCase, TestUser):
         self.assertTrue(admission)
 
         bed = admission.current_bed
+
+        # TODO: This will currently fail, as the workflow manager will need to perform the
+        # assignment of a bed at the end of the admission process
         self.assertTrue(bed)
 
         self.assertEqual(bed.bed_type.name, "Intermediate Care")

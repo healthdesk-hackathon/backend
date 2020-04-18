@@ -18,10 +18,6 @@ class Patient(CurrentBaseModel):
         ordering = ['-created']
 
     @property
-    def patient_anon_id(self):
-        return hashlib.md5(self.id_type.encode() + self.identifier.encode()).hexdigest()[:12]
-
-    @property
     def current_admission(self):
         admission = self.admissions.first()
         return admission

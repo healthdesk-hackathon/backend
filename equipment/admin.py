@@ -8,11 +8,11 @@ from equipment.models import BedType, Bed
 from project.admin import admin_site
 from django.utils.translation import gettext_lazy as _
 
-from common.base_admin import SaveCurrentUser
+from common.base_admin import SaveCurrentUserAdmin
 
 
 @admin.register(BedType, site=admin_site)
-class BedTypeAdmin(admin.ModelAdmin, SaveCurrentUser):
+class BedTypeAdmin(SaveCurrentUserAdmin, admin.ModelAdmin):
     list_display = [
         'name',
         'total',
@@ -21,14 +21,9 @@ class BedTypeAdmin(admin.ModelAdmin, SaveCurrentUser):
         'number_out_of_service',
     ]
 
-    def save_model(self, request, obj, form, change):
-        obj.current_user = request.user
-        self.prevent_update()
-        super().save_model(request, obj, form, change)
-
 
 @admin.register(Bed, site=admin_site)
-class BedsAdmin(ActionsModelAdmin, SaveCurrentUser):
+class BedsAdmin(SaveCurrentUserAdmin, admin.ModelAdmin):
     actions_row = (
         'set_to_available',
         'set_to_equipment_failure',
@@ -52,11 +47,6 @@ class BedsAdmin(ActionsModelAdmin, SaveCurrentUser):
         'reason',
         'bed_type__name'
     ]
-
-    def save_model(self, request, obj, form, change):
-        obj.current_user = request.user
-        self.prevent_update()
-        super().save_model(request, obj, form, change)
 
     def has_change_permission(self, request, obj=None):
         return False
