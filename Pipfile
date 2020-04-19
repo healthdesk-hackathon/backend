@@ -10,6 +10,7 @@ pytest-django = "*"
 pytest-cov = "*"
 pytest-xdist = "*"
 autopep8 = "*"
+rope = "*"
 
 [packages]
 django = "*"
@@ -28,6 +29,8 @@ django-heroku = "*"
 django-actions = {editable = true,git = "https://git@github.com/lukasvinclav/django-admin-actions.git",ref = "master"}
 python-barcode = "*"
 pillow = "*"
+django-simple-history = "*"
+django-model-utils = "*"
 
 [requires]
 python_version = "3.7"
