@@ -1,3 +1,12 @@
+from rest_framework import request
+
+
+class BaseSaveSerializer():
+
+    def save(self, **kwargs):
+        super().save(current_user=request.user, **kwargs)
+
+
 class ImmutableSerializerMeta():
 
     base_fields = [
@@ -6,6 +15,8 @@ class ImmutableSerializerMeta():
         'created',
         'is_removed'
     ]
+
+    read_only_fields = ['creator', 'created', ]
 
 
 class CurrentSerializerMeta():
@@ -17,3 +28,5 @@ class CurrentSerializerMeta():
         'modifier',
         'modified'
     ]
+
+    read_only_fields = ['creator', 'created', 'modifier', 'modified', ]

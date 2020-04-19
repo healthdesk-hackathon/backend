@@ -1,30 +1,32 @@
 from rest_framework import serializers
 
 from patient.models import Patient, PatientIdentifier, PersonalData, NextOfKinContact, Phone
-from common.base_serializers import ImmutableSerializerMeta, CurrentSerializerMeta
+from common.base_serializers import ImmutableSerializerMeta, CurrentSerializerMeta, BaseSaveSerializer
 
 
-class PatientSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Patient
-        fields = ImmutableSerializerMeta.base_fields
-
-
-class PatientIdentifierSerializer(serializers.ModelSerializer):
+class PatientSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
     class Meta:
-        model = PatientIdentifier
-        fields = ImmutableSerializerMeta.base_fields + [
+        model=Patient
+        fields=ImmutableSerializerMeta.base_fields
+        read_only_fields=ImmutableSerializerMeta.read_only_fields
+
+
+class PatientIdentifierSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+
+    class Meta:
+        model=PatientIdentifier
+        fields=ImmutableSerializerMeta.base_fields + [
             'identifier',
             'id_type'
         ]
+        read_only_fields=ImmutableSerializerMeta.read_only_fields
 
 
-class PersonalDataSerializer(serializers.ModelSerializer):
+class PersonalDataSerializer(BaseSaveSerializer, serializers.ModelSerializer):
     class Meta:
-        model = PersonalData
-        fields = CurrentSerializerMeta.base_fields + [
+        model=PersonalData
+        fields=CurrentSerializerMeta.base_fields + [
             'patient_id',
             'first_name',
             'last_name',
@@ -32,23 +34,26 @@ class PersonalDataSerializer(serializers.ModelSerializer):
             'date_of_birth',
         ]
 
+        read_only_fields=CurrentSerializerMeta.read_only_fields
 
-class PhoneSerializer(serializers.ModelSerializer):
+
+class PhoneSerializer(BaseSaveSerializer, serializers.ModelSerializer):
     class Meta:
-        model = Phone
-        fields = CurrentSerializerMeta.base_fields + [
+        model=Phone
+        fields=CurrentSerializerMeta.base_fields + [
             'patient_id',
             'phone_number',
             'phone_type',
         ]
+        read_only_fields=CurrentSerializerMeta.read_only_fields
 
 
-class NextOfKinContactSerializer(serializers.ModelSerializer):
+class NextOfKinContactSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
     class Meta:
-        model = NextOfKinContact
+        model=NextOfKinContact
 
-        fields = CurrentSerializerMeta.base_fields + [
+        fields=CurrentSerializerMeta.base_fields + [
             'patient_id',
             'first_name',
             'last_name',
@@ -58,4 +63,5 @@ class NextOfKinContactSerializer(serializers.ModelSerializer):
             'phone_number',
             'notes',
         ]
+        read_only_fields=CurrentSerializerMeta.read_only_fields
 

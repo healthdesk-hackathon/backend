@@ -1,5 +1,7 @@
+
 import hashlib
 
+from django.db import transaction
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
@@ -10,6 +12,29 @@ class Patient(ImmutableBaseModel):
     """
     Patient record, ties all patient related info together.
     """
+
+    class PatientManager(models.Manager):
+
+        @transaction.atomic
+        def start_new_patient_admission(current_user=None):
+            """Start a new patient admission by creating both the patient and admission records.
+
+            If a patient already exists in the system, don't do this. Instead just create a
+            new admission, linking to the existing patient record.
+
+            If the aim is not to admit a patient immediately, just create a patient, leaving the
+            creation of the admission record until later.
+
+            Returns:
+                Patient -- patient is returned, which allows reference
+                            to current_admission property for the new admission
+            """
+
+            import patient_tracker.models
+
+            patient = Patient.objects.create(current_user=current_user)
+            patient_tracker.models.Admission.objects.create(patient=patient, current_user=current_user)
+            return patient
 
     class Meta:
         ordering = ['-created']
