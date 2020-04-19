@@ -56,6 +56,13 @@ class ImmutableBaseModel(SoftDeletableModel, TimeStampedModel):
             self.creator = self.current_user
         super().save(**kwargs)
 
+    def remove(self):
+        """Set is_removed to True and save the model
+        """
+
+        self.is_removed = True
+        self.save()
+
 
 class CurrentBaseModel(TimeStampedModel):
     """Used as a base class for models that hold are updatable to hold current values.

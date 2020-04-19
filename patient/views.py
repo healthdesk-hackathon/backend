@@ -9,7 +9,7 @@ from patient.serializers import PatientSerializer, PersonalDataSerializer, \
 patient_permissions = [permissions.DjangoModelPermissions]
 
 
-class PatientViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+class PatientViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
 
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer

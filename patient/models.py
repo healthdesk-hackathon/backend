@@ -44,6 +44,10 @@ class Patient(ImmutableBaseModel):
         admission = self.admissions.first()
         return admission
 
+    @property
+    def current_admission_id(self):
+        return self.current_admission.id
+
 
 class PatientIdentifier(CurrentBaseModel):
 
