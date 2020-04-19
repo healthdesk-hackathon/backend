@@ -289,7 +289,7 @@ class HealthSnapshotFile(ImmutableBaseModel):
     notes = models.TextField()
 
 
-class OverallWellbeing(CurrentBaseModel):
+class OverallWellbeing(ImmutableBaseModel):
     """
     Overall wellbeing, as the patient assesses themselves
 
@@ -304,17 +304,17 @@ class OverallWellbeing(CurrentBaseModel):
 
     """
 
-    patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name='overall_wellbeing')
+    admission = models.OneToOneField(Admission, on_delete=models.CASCADE, related_name='overall_wellbeing')
     overall_value = models.IntegerField(null=False, validators=[MaxValueValidator(10), MinValueValidator(0)])
 
 
-class CommonSymptoms(CurrentBaseModel):
+class CommonSymptoms(ImmutableBaseModel):
     """
     Symptoms that a patient believes they have.
 
     """
 
-    patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name='common_symptoms')
+    admission = models.OneToOneField(Admission, on_delete=models.CASCADE, related_name='common_symptoms')
 
     chills = models.BooleanField(default=False, null=False)
     achy_joints_muscles = models.BooleanField(default=False, null=False)
@@ -332,12 +332,12 @@ class CommonSymptoms(CurrentBaseModel):
     runny_nose = models.BooleanField(default=False, null=False)
 
 
-class GradedSymptoms(CurrentBaseModel):
+class GradedSymptoms(ImmutableBaseModel):
     """
     Symptoms that a patient grades on a scale of 0 to 10
     """
 
-    patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name='graded_symptoms')
+    admission = models.OneToOneField(Admission, on_delete=models.CASCADE, related_name='graded_symptoms')
 
     # How hard is it to breath
     difficulty_breathing = models.IntegerField(null=False, validators=[MaxValueValidator(10), MinValueValidator(0)])
@@ -345,12 +345,12 @@ class GradedSymptoms(CurrentBaseModel):
     anxious = models.IntegerField(null=False, validators=[MaxValueValidator(10), MinValueValidator(0)])
 
 
-class RelatedConditions(CurrentBaseModel):
+class RelatedConditions(ImmutableBaseModel):
     """
     How is your health?
     """
 
-    patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name='related_conditions')
+    admission = models.OneToOneField(Admission, on_delete=models.CASCADE, related_name='related_conditions')
 
     heart_condition = models.BooleanField(null=False, default=False)
     high_blood_pressure = models.BooleanField(null=False, default=False)

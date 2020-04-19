@@ -18,7 +18,7 @@ class AutoAssignBedTestCase(TestCase, TestUser):
 
     def test_auto_assign_bed_on_admission(self):
 
-        patient = Patient(identifier='12345', current_user=self.test_user)
+        patient = Patient(current_user=self.test_user)
         patient.save()
 
         admission = Admission.objects.create(patient=patient, current_user=self.test_user)
@@ -54,7 +54,7 @@ class AutoAssignBedTestCase(TestCase, TestUser):
 
     def test_no_auto_assign_bed_if_no_match(self):
 
-        patient = Patient(identifier='12346', current_user=self.test_user)
+        patient = Patient(current_user=self.test_user)
         patient.save()
 
         admission = Admission.objects.create(patient=patient, current_user=self.test_user)

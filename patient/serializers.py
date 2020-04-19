@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from patient.models import Patient, PersonalData, NextOfKinContact, Phone
+from patient.models import Patient, PatientIdentifier, PersonalData, NextOfKinContact, Phone
 from common.base_serializers import ImmutableSerializerMeta, CurrentSerializerMeta
 
 
@@ -8,6 +8,13 @@ class PatientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Patient
+        fields = ImmutableSerializerMeta.base_fields
+
+
+class PatientIdentifierSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PatientIdentifier
         fields = ImmutableSerializerMeta.base_fields + [
             'identifier',
             'id_type'

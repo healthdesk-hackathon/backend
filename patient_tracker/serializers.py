@@ -7,7 +7,7 @@ from patient_tracker.models import Admission, HealthSnapshot, \
 
 from patient.serializers import PatientSerializer
 
-from common.base_serializers import ImmutableSerializerMeta
+from common.base_serializers import ImmutableSerializerMeta, CurrentSerializerMeta
 
 
 class AdmissionSerializer(serializers.ModelSerializer):
@@ -32,7 +32,7 @@ class AdmissionSerializer(serializers.ModelSerializer):
 
         patient = PatientSerializer()
 
-        fields = ImmutableSerializerMeta.base_fields + [
+        fields = CurrentSerializerMeta.base_fields + [
             'local_barcode',
             'local_barcode_image',
             'patient',

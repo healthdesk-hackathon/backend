@@ -17,7 +17,7 @@ class PatientTrackerTestCase(TestCase, TestUser):
 
     def test_admit_patient(self):
 
-        patient = Patient.objects.create(identifier='12346', current_user=self.test_user)
+        patient = Patient.objects.create(current_user=self.test_user)
         admission = Admission.objects.create(patient=patient, current_user=self.test_user)
         icu = BedType.objects.get(name='Intensive Care Unit')
 
@@ -40,7 +40,7 @@ class PatientTrackerTestCase(TestCase, TestUser):
         self.assertEqual(icu.number_available, 0)
 
     def test_change_bed(self):
-        patient = Patient.objects.create(identifier='12347', current_user=self.test_user)
+        patient = Patient.objects.create(current_user=self.test_user)
         admission = Admission.objects.create(patient=patient, current_user=self.test_user)
         icu = BedType.objects.get(name='Intensive Care Unit')
         inter = BedType.objects.get(name='Intermediate Care')
@@ -67,7 +67,7 @@ class PatientTrackerTestCase(TestCase, TestUser):
 
     def test_discharge(self):
 
-        patient = Patient.objects.create(identifier='12346', current_user=self.test_user)
+        patient = Patient.objects.create(current_user=self.test_user)
         admission = Admission.objects.create(patient=patient, current_user=self.test_user)
         icu = BedType.objects.get(name='Intensive Care Unit')
         # inter = BedType.objects.get(name='Intermediate Care')

@@ -6,13 +6,10 @@ from django.db import models
 from common.base_models import ImmutableBaseModel, CurrentBaseModel
 
 
-class Patient(CurrentBaseModel):
+class Patient(ImmutableBaseModel):
     """
     Patient record, ties all patient related info together.
     """
-
-    identifier = models.CharField(max_length=50, null=False)
-    id_type = models.CharField(max_length=50, null=False)
 
     class Meta:
         ordering = ['-created']
@@ -21,6 +18,13 @@ class Patient(CurrentBaseModel):
     def current_admission(self):
         admission = self.admissions.first()
         return admission
+
+
+class PatientIdentifier(CurrentBaseModel):
+
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='patient_identifier')
+    identifier = models.CharField(max_length=50, null=False)
+    id_type = models.CharField(max_length=50, null=False)
 
 
 class PersonalData(CurrentBaseModel):

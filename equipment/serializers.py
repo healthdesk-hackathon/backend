@@ -13,7 +13,7 @@ class BedSerializer(serializers.ModelSerializer):
         model = Bed
         fields = CurrentSerializerMeta.base_fields + [
             'bed_type',
-            'admissions',
+            'assignments',
             'reason',
             'state',
             'current_admission',
