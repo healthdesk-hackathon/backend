@@ -7,8 +7,15 @@ from common.base_serializers import ImmutableSerializerMeta, CurrentSerializerMe
 class PatientSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
     class Meta:
-        model=Patient
-        fields=ImmutableSerializerMeta.base_fields
+        model = Patient
+
+        extra_kwargs={
+            'current_admission_id': {'read_only': True}
+        }
+
+        fields = ImmutableSerializerMeta.base_fields + [
+            'current_admission_id'
+        ]
         read_only_fields=ImmutableSerializerMeta.read_only_fields
 
 
