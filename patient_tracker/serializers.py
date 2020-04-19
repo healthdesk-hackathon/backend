@@ -2,23 +2,23 @@ from rest_framework import serializers
 
 from patient.models import Patient
 from patient_tracker.models import Admission, HealthSnapshot, \
-    Discharge, Deceased, Patient, OverallWellbeing, CommonSymptoms, \
+    Discharge, Deceased, OverallWellbeing, CommonSymptoms, \
     GradedSymptoms, RelatedConditions
 
 from patient.serializers import PatientSerializer
 
-from common.base_serializers import ImmutableSerializerMeta, CurrentSerializerMeta
+from common.base_serializers import ImmutableSerializerMeta, CurrentSerializerMeta, BaseSaveSerializer
 
 
-class AdmissionSerializer(serializers.ModelSerializer):
+class AdmissionSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
-    current_bed = serializers.PrimaryKeyRelatedField(read_only=True)
-    patient_id = serializers.PrimaryKeyRelatedField(source='patient', write_only=True, queryset=Patient.objects.all())
+    current_bed=serializers.PrimaryKeyRelatedField(read_only=True)
+    patient_id=serializers.PrimaryKeyRelatedField(source='patient', write_only=True, queryset=Patient.objects.all())
 
     class Meta:
-        model = Admission
+        model=Admission
 
-        extra_kwargs = {
+        extra_kwargs={
             'patient_id': {'read_only': True},
             'local_barcode': {'read_only': True},
             'local_barcode_image': {'read_only': True},
@@ -43,11 +43,12 @@ class AdmissionSerializer(serializers.ModelSerializer):
             'current_bed',
             'patient_display'
         ]
+        read_only_fields = ImmutableSerializerMeta.read_only_fields
 
         depth = 1
 
 
-class HealthSnapshotSerializer(serializers.ModelSerializer):
+class HealthSnapshotSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
     class Meta:
         model = HealthSnapshot
@@ -67,9 +68,10 @@ class HealthSnapshotSerializer(serializers.ModelSerializer):
             'observations',
             'severity',
         ]
+        read_only_fields = ImmutableSerializerMeta.read_only_fields
 
 
-class DischargeSerializer(serializers.ModelSerializer):
+class DischargeSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
     class Meta:
         model = Discharge
@@ -79,9 +81,10 @@ class DischargeSerializer(serializers.ModelSerializer):
             'discharged_at',
             'notes',
         ]
+        read_only_fields = ImmutableSerializerMeta.read_only_fields
 
 
-class DeceasedSerializer(serializers.ModelSerializer):
+class DeceasedSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
     class Meta:
         model = Deceased
@@ -91,18 +94,20 @@ class DeceasedSerializer(serializers.ModelSerializer):
             'registered_at',
             'notes',
         ]
+        read_only_fields = ImmutableSerializerMeta.read_only_fields
 
 
-class OverallWellbeingSerializer(serializers.ModelSerializer):
+class OverallWellbeingSerializer(BaseSaveSerializer, serializers.ModelSerializer):
     class Meta:
         model = OverallWellbeing
         fields = ImmutableSerializerMeta.base_fields + [
             'admission_id',
             'overall_value',
         ]
+        read_only_fields = ImmutableSerializerMeta.read_only_fields
 
 
-class CommonSymptomsSerializer(serializers.ModelSerializer):
+class CommonSymptomsSerializer(BaseSaveSerializer, serializers.ModelSerializer):
     class Meta:
         model = CommonSymptoms
         fields = ImmutableSerializerMeta.base_fields + [
@@ -123,9 +128,10 @@ class CommonSymptomsSerializer(serializers.ModelSerializer):
             'fever',
             'runny_nose',
         ]
+        read_only_fields = ImmutableSerializerMeta.read_only_fields
 
 
-class GradedSymptomsSerializer(serializers.ModelSerializer):
+class GradedSymptomsSerializer(BaseSaveSerializer, serializers.ModelSerializer):
     """
     Symptoms that a patient grades on a scale of 0 to 10
     """
@@ -138,9 +144,10 @@ class GradedSymptomsSerializer(serializers.ModelSerializer):
             'difficulty_breathing',
             'anxious'
         ]
+        read_only_fields = ImmutableSerializerMeta.read_only_fields
 
 
-class RelatedConditionsSerializer(serializers.ModelSerializer):
+class RelatedConditionsSerializer(BaseSaveSerializer, serializers.ModelSerializer):
     class Meta:
         model = RelatedConditions
         fields = ImmutableSerializerMeta.base_fields + [
@@ -158,4 +165,5 @@ class RelatedConditionsSerializer(serializers.ModelSerializer):
             'pregnant',
             'smoke'
         ]
+        read_only_fields = ImmutableSerializerMeta.read_only_fields
 
