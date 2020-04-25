@@ -114,10 +114,11 @@ class Admission(CurrentBaseModel):
 
     @property
     def patient_display(self):
-        if self.patient and self.patient.patient_datas.count() > 0:
-            data = self.patient.patient_datas.first().personal_data.first()
+        if self.patient and self.patient.personal_data:
+            data = self.patient.personal_data
             return f'{data.first_name} {data.last_name}'
-        return self.id
+        else:
+            return '-'
 
     def generate_barcode_image(self):
 
