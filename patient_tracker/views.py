@@ -18,6 +18,15 @@ class AdmissionViewSet(ModelViewSet):
 
     permission_classes = patient_tracker_permissions
 
+    def get_queryset(self):
+        queryset = self.queryset
+        patient_id = self.request.query_params.get('patient_id', None)
+
+        if patient_id is not None:
+            queryset = queryset.filter(patient=patient_id)
+
+        return queryset
+
 
 class HealthSnapshotViewSet(ModelViewSet):
     queryset = HealthSnapshot.objects.all()

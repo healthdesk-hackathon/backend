@@ -10,16 +10,28 @@ class PatientSerializer(BaseSaveSerializer, serializers.ModelSerializer):
         model = Patient
 
         extra_kwargs={
-            'current_admission_id': {'read_only': True}
+            'current_admission_id': {'read_only': True},
+            'personal_data': {'read_only': True},
+            'patient_identifiers': {'read_only': True},
+            'phones': {'read_only': True},
+            'next_of_kin_contacts': {'read_only': True}
         }
 
         fields = ImmutableSerializerMeta.base_fields + [
-            'current_admission_id'
+            'current_admission_id',
+            'personal_data',
+            'patient_identifiers',
+            'phones',
+            'next_of_kin_contacts'
         ]
         read_only_fields=ImmutableSerializerMeta.read_only_fields
 
+        depth = 1
+
 
 class PatientIdentifierSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+
+    patient_id=serializers.PrimaryKeyRelatedField(source='patient', write_only=True, queryset=Patient.objects.all())
 
     class Meta:
         model=PatientIdentifier
@@ -31,6 +43,9 @@ class PatientIdentifierSerializer(BaseSaveSerializer, serializers.ModelSerialize
 
 
 class PersonalDataSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+
+    patient_id=serializers.PrimaryKeyRelatedField(source='patient', write_only=True, queryset=Patient.objects.all())
+
     class Meta:
         model=PersonalData
         fields=CurrentSerializerMeta.base_fields + [
@@ -45,6 +60,9 @@ class PersonalDataSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
 
 class PhoneSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+
+    patient_id=serializers.PrimaryKeyRelatedField(source='patient', write_only=True, queryset=Patient.objects.all())
+
     class Meta:
         model=Phone
         fields=CurrentSerializerMeta.base_fields + [
@@ -56,6 +74,8 @@ class PhoneSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
 
 class NextOfKinContactSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+
+    patient_id=serializers.PrimaryKeyRelatedField(source='patient', write_only=True, queryset=Patient.objects.all())
 
     class Meta:
         model=NextOfKinContact
