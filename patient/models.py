@@ -51,7 +51,7 @@ class Patient(ImmutableBaseModel):
 
 class PatientIdentifier(CurrentBaseModel):
 
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='patient_identifier')
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='patient_identifiers')
     identifier = models.CharField(max_length=50, null=False)
     id_type = models.CharField(max_length=50, null=False)
 
@@ -62,7 +62,7 @@ class PersonalData(CurrentBaseModel):
         FEMALE = 'F', 'Female'
         OTHER = 'O', 'Other/Prefer not to disclose'
 
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='personal_data')
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name='personal_data')
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     gender = models.CharField(max_length=1, choices=GenderChoices.choices)
