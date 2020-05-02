@@ -256,7 +256,8 @@ class Discharge(ImmutableBaseModel):
 
     @transaction.atomic
     def save(self):
-        """override save to handle the (re)assignment of a patient to a bed
+        """override save to handle the release of the current bed
+        and mark the admission flag as no longer admitted
         """
         # Complete the discharge save
         super().save()
@@ -264,8 +265,11 @@ class Discharge(ImmutableBaseModel):
         # Does the current admission have an assigned bed already?
         bed = self.admission.current_bed
         if bed:
-            # Release the current bed and assign the new one
+            # Release the current bed
             bed.leave_bed()
+
+        self.admission.admitted = False
+        self.admission.save()
 
 
 class Deceased(ImmutableBaseModel):
@@ -280,6 +284,23 @@ class Deceased(ImmutableBaseModel):
     cause = models.CharField(blank=False, null=False, max_length=100)
     notes = models.TextField(null=True, blank=True)
     notified_next_of_kin = models.BooleanField(default=False)
+
+    @transaction.atomic
+    def save(self):
+        """override save to handle the release of the current bed
+        and mark the admission flag as no longer admitted
+        """
+        # Complete the discharge save
+        super().save()
+
+        # Does the current admission have an assigned bed already?
+        bed = self.admission.current_bed
+        if bed:
+            # Release the current bed
+            bed.leave_bed()
+
+        self.admission.admitted = False
+        self.admission.save()
 
 
 class HealthSnapshotFile(ImmutableBaseModel):
