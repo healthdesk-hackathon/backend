@@ -1,39 +1,60 @@
 from rest_framework import serializers
 
-from patient_tracker.models import Admission, HealthSnapshot, Bed, BedType, \
-    Discharge, Deceased
+from patient.models import Patient
+from patient_tracker.models import Admission, HealthSnapshot, \
+    Discharge, Deceased, OverallWellbeing, CommonSymptoms, \
+    GradedSymptoms, RelatedConditions
+
+from patient.serializers import PatientSerializer
+
+from common.base_serializers import ImmutableSerializerMeta, CurrentSerializerMeta, BaseSaveSerializer
 
 
-class AdmissionSerializer(serializers.ModelSerializer):
+class AdmissionSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+
+    current_bed=serializers.PrimaryKeyRelatedField(read_only=True)
+    patient_id=serializers.PrimaryKeyRelatedField(source='patient', write_only=True, queryset=Patient.objects.all())
 
     class Meta:
-        model = Admission
+        model=Admission
 
-        extra_kwargs = {'local_barcode': {'read_only': True}}
+        extra_kwargs={
+            'patient_id': {'read_only': True},
+            'local_barcode': {'read_only': True},
+            'local_barcode_image': {'read_only': True},
+            'patient': {'read_only': True},
+            'admitted': {'read_only': True},
+            'admitted_at': {'read_only': True},
+            'current_severity': {'read_only': True},
+            'current_bed': {'read_only': True},
+            'patient_display': {'read_only': True},
+        }
 
-        fields = [
-            'id',
+        patient = PatientSerializer()
+
+        fields = CurrentSerializerMeta.base_fields + [
+            'local_barcode',
             'local_barcode_image',
             'patient',
-            'admitted'
+            'patient_id',
+            'admitted',
+            'admitted_at',
+            'current_severity',
+            'current_bed',
+            'patient_display'
         ]
+        read_only_fields = ImmutableSerializerMeta.read_only_fields
+
+        depth = 1
 
 
-class HealthSnapshotSerializer(serializers.ModelSerializer):
-
-    # user = serializers.HiddenField(
-    #     default=serializers.CurrentUserDefault()
-    # )
+class HealthSnapshotSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
     class Meta:
         model = HealthSnapshot
-        extra_kwargs = {
-            'created_at': {'read_only': True}
-        }
-        fields = [
-            # 'user',
-            'created_at',
-            'admission',
+
+        fields = ImmutableSerializerMeta.base_fields + [
+            'admission_id',
 
             'blood_pressure_systolic',
             'blood_pressure_diastolic',
@@ -42,117 +63,108 @@ class HealthSnapshotSerializer(serializers.ModelSerializer):
             'temperature',
             'oxygen_saturation',
             'main_complain',
-
             'gcs_eye',
             'gcs_verbal',
             'gcs_motor',
-
             'observations',
-
             'severity',
         ]
+        read_only_fields = ImmutableSerializerMeta.read_only_fields
 
 
-class BedSerializer(serializers.ModelSerializer):
-
-    current_admission = AdmissionSerializer(read_only=True)
-
-    class Meta:
-        model = Bed
-        fields = [
-            'id',
-            'bed_type',
-            'admissions',
-            'reason',
-            'state',
-            'bed_type',
-            'current_admission'
-        ]
-
-
-class BedTypeSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = BedType
-        extra_kwargs = {
-            'number_out_of_service': {'read_only': True},
-            'number_assigned': {'read_only': True},
-            'number_available': {'read_only': True},
-            'number_waiting': {'read_only': True},
-            'is_available': {'read_only': True},
-        }
-        fields = [
-            'id',
-            'name',
-            'total',
-
-            'number_out_of_service',
-            'number_assigned',
-            'number_available',
-            'number_waiting',
-            'is_available',
-        ]
-
-
-class LabelledValueSerializer(serializers.Serializer):
-    label = serializers.CharField()
-    value = serializers.FloatField()
-
-
-class AdmissionCountSerializer(serializers.Serializer):
-
-    date = serializers.DateField()
-    count = LabelledValueSerializer(many=True)
-
-
-class DashboardSerializer(serializers.Serializer):
-    def update(self, instance, validated_data):
-        pass
-
-    def create(self, validated_data):
-        pass
-
-    bed_availability = LabelledValueSerializer(many=True)
-    assignments = LabelledValueSerializer(many=True)
-    global_availability = serializers.FloatField()
-    total_discharges = serializers.IntegerField()
-    average_duration = serializers.DurationField()
-    admissions_per_day = AdmissionCountSerializer(many=True)
-
-    class Meta:
-        fields = [
-            'bed_availability',
-            'global_availability',
-            'total_discharges',
-            'assignments'
-        ]
-
-
-class DischargeSerializer(serializers.ModelSerializer):
+class DischargeSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
     class Meta:
         model = Discharge
 
-        fields = [
-            'id',
-            'admission',
+        fields = ImmutableSerializerMeta.base_fields + [
+            'admission_id',
             'discharged_at',
             'notes',
-            'user',
         ]
+        read_only_fields = ImmutableSerializerMeta.read_only_fields
 
 
-class DeceasedSerializer(serializers.ModelSerializer):
+class DeceasedSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
     class Meta:
         model = Deceased
 
-        fields = [
-            'id',
-            'admission',
-            'created_at',
+        fields = ImmutableSerializerMeta.base_fields + [
+            'admission_id',
             'registered_at',
             'notes',
-            'registered_at',
-            'user'
         ]
+        read_only_fields = ImmutableSerializerMeta.read_only_fields
+
+
+class OverallWellbeingSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+    class Meta:
+        model = OverallWellbeing
+        fields = ImmutableSerializerMeta.base_fields + [
+            'admission_id',
+            'overall_value',
+        ]
+        read_only_fields = ImmutableSerializerMeta.read_only_fields
+
+
+class CommonSymptomsSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+    class Meta:
+        model = CommonSymptoms
+        fields = ImmutableSerializerMeta.base_fields + [
+            'admission_id',
+
+            'chills',
+            'achy_joints_muscles',
+            'lost_taste_smell',
+            'congestion',
+            'stomach_disturbance',
+            'tiredness',
+            'headache',
+            'dry_cough',
+            'cough_with_sputum',
+            'nauseous',
+            'short_of_breath',
+            'sore_throat',
+            'fever',
+            'runny_nose',
+        ]
+        read_only_fields = ImmutableSerializerMeta.read_only_fields
+
+
+class GradedSymptomsSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+    """
+    Symptoms that a patient grades on a scale of 0 to 10
+    """
+
+    class Meta:
+        model = GradedSymptoms
+        fields = ImmutableSerializerMeta.base_fields + [
+            'admission_id',
+
+            'difficulty_breathing',
+            'anxious'
+        ]
+        read_only_fields = ImmutableSerializerMeta.read_only_fields
+
+
+class RelatedConditionsSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+    class Meta:
+        model = RelatedConditions
+        fields = ImmutableSerializerMeta.base_fields + [
+            'admission_id',
+
+            'heart_condition',
+            'high_blood_pressure',
+            'asthma',
+            'chronic_lung_problems',
+            'mild_diabetes',
+            'chronic_diabetes',
+            'current_chemo',
+            'past_chemo',
+            'take_immunosuppressants',
+            'pregnant',
+            'smoke'
+        ]
+        read_only_fields = ImmutableSerializerMeta.read_only_fields
+

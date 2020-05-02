@@ -72,9 +72,13 @@ INSTALLED_APPS = [
 
     'custom_auth',
     'api',
+    'dashboard',
     'dummy',
-    'submission',
-    'patient_tracker'
+    'equipment',
+    'patient',
+    'patient_tracker',
+    'simple_history',
+
 ]
 
 MIDDLEWARE = [
@@ -207,3 +211,14 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 if not DEBUG:
     django_heroku.settings(locals())
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'apiKey': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization'
+
+        }
+    },
+}

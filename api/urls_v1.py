@@ -5,12 +5,13 @@ from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from submission.views import SubmissionViewSet, PhoneViewSet, PersonalDataViewSet, \
-    OverallWellbeingViewSet, CommonSymptomsViewSet, GradedSymptomsViewSet, RelatedConditionsViewSet, \
-    MedicalCenterViewSet, InitialHealthSnapshotViewSet
+from dashboard.views import DashboardView
+from equipment.views import BedViewSet, BedTypeViewSet
+from patient.views import PatientViewSet, PhoneViewSet, PersonalDataViewSet, NextOfKinContactViewSet
 
-from patient_tracker.views import AdmissionViewSet, HealthSnapshotViewSet, BedViewSet, BedTypeViewSet, \
-    DischargeViewSet, DeceasedViewSet, DashboardView
+from patient_tracker.views import AdmissionViewSet, HealthSnapshotViewSet,  \
+    DischargeViewSet, DeceasedViewSet, \
+    OverallWellbeingViewSet, CommonSymptomsViewSet, GradedSymptomsViewSet, RelatedConditionsViewSet
 
 
 app_name = 'v1'
@@ -32,16 +33,15 @@ router = DefaultRouter()
 
 ### SETUP YOUR API URLS HERE ### # noqa: E266
 
-router.register('submission', SubmissionViewSet, basename='submission')
+router.register('patient', PatientViewSet, basename='patient')
+
 router.register('phone', PhoneViewSet, basename='phone')
 router.register('personal-data', PersonalDataViewSet, basename='personal-data')
 router.register('admission', AdmissionViewSet, basename='admission')
-router.register('medical-center', MedicalCenterViewSet, basename='medical-center')
 
 router.register('bed', BedViewSet, basename='bed')
 router.register('bed-type', BedTypeViewSet, basename='bed-type')
 router.register('health-snapshot', HealthSnapshotViewSet, basename='health-snapshot')
-router.register('initial-health-snapshot', InitialHealthSnapshotViewSet, basename='initial-health-snapshot')
 
 router.register('discharge', DischargeViewSet, basename='discharge')
 router.register('deceased', DeceasedViewSet, basename='deceased')
@@ -50,6 +50,8 @@ router.register('overall-wellbeing', OverallWellbeingViewSet, basename='overall-
 router.register('common-symptoms', CommonSymptomsViewSet, basename='common-symptoms')
 router.register('graded-symptoms', GradedSymptomsViewSet, basename='graded-symptoms')
 router.register('related-conditions', RelatedConditionsViewSet, basename='related-conditions')
+
+router.register('next-of-kin-contacts', NextOfKinContactViewSet, basename='next-of-kin-contacts')
 
 ################################
 
