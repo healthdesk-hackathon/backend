@@ -42,6 +42,8 @@ class Patient(ImmutableBaseModel):
     @property
     def current_admission(self):
         admission = self.admissions.first()
+        if not admission.admitted:
+            admission = None
         return admission
 
     @property
