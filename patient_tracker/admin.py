@@ -35,6 +35,9 @@ class HealthSnapshotInline(SaveCurrentUser, admin.TabularInline):
     model = HealthSnapshot
     extra = 0
     fields = [
+        'main_complain',
+        'severity',
+
         'blood_pressure_systolic',
         'blood_pressure_diastolic',
         'heart_rate',
@@ -48,7 +51,6 @@ class HealthSnapshotInline(SaveCurrentUser, admin.TabularInline):
 
         'observations',
 
-        'severity',
     ]
 
     def has_change_permission(self, request, obj=None):
@@ -116,12 +118,16 @@ class AdmissionAdmin(SaveCurrentUserAdmin, admin.ModelAdmin):
         'admitted_at',
         'discharged',
         'deceased',
-        'current_severity'
+        'current_severity',
+        'current_main_complain'
     ]
 
     list_filter = [
         'admitted_at'
     ]
+
+    def current_main_complain(self, obj):
+        return obj.flattened_snapshot['main_complain']
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -186,7 +192,8 @@ class HealthSnapshotAdmin(SaveCurrentUserAdmin, admin.ModelAdmin):
         'breathing_rate',
         'temperature',
         'oxygen_saturation',
-        'gcs_total'
+        'gcs_total',
+        'main_complain'
     )
 
     inlines = [

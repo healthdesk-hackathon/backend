@@ -15,6 +15,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Count, F, Avg, Subquery, OuterRef, Max
+from django.forms import model_to_dict
 from django.utils import timezone as tz
 
 
@@ -151,6 +152,14 @@ class Admission(CurrentBaseModel):
         return snapshot.severity if snapshot else None
 
     @property
+    def flattened_snapshot(self):
+        result = {}
+        for ss in self.health_snapshots.all().reverse():
+            d = model_to_dict(ss, exclude=['admission'])
+            result.update({k: v for k, v in d.items() if v != "" and v is not None})
+        return result
+
+    @property
     def current_bed(self):
         try:
             return self.assignments.filter(unassigned_at__isnull=True).latest('-assigned_at').bed
@@ -211,6 +220,7 @@ class HealthSnapshot(ImmutableBaseModel):
         GREEN = 'GREEN', 'Green'
         WHITE = 'WHITE', 'White'
 
+    main_complain = models.CharField(null=True, blank=True, default='', max_length=250)
     admission = models.ForeignKey(Admission, on_delete=models.PROTECT, related_name='health_snapshots')
 
     blood_pressure_systolic = models.PositiveIntegerField(null=True, blank=True)
