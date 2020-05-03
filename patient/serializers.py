@@ -35,11 +35,12 @@ class PatientIdentifierSerializer(BaseSaveSerializer, serializers.ModelSerialize
 
     class Meta:
         model=PatientIdentifier
-        fields=ImmutableSerializerMeta.base_fields + [
+        fields=CurrentSerializerMeta.base_fields + [
+            'patient_id',
             'identifier',
             'id_type'
         ]
-        read_only_fields=ImmutableSerializerMeta.read_only_fields
+        read_only_fields=CurrentSerializerMeta.read_only_fields
 
 
 class PersonalDataSerializer(BaseSaveSerializer, serializers.ModelSerializer):

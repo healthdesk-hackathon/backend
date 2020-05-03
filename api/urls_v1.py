@@ -7,7 +7,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from dashboard.views import DashboardView
 from equipment.views import BedViewSet, BedTypeViewSet
-from patient.views import PatientViewSet, PhoneViewSet, PersonalDataViewSet, NextOfKinContactViewSet
+from patient.views import PatientViewSet, PhoneViewSet, PersonalDataViewSet, NextOfKinContactViewSet, \
+    PatientIdentifierViewSet
 
 from patient_tracker.views import AdmissionViewSet, HealthSnapshotViewSet,  \
     DischargeViewSet, DeceasedViewSet, \
@@ -37,6 +38,7 @@ router.register('patient', PatientViewSet, basename='patient')
 
 router.register('phone', PhoneViewSet, basename='phone')
 router.register('personal-data', PersonalDataViewSet, basename='personal-data')
+router.register('patient-identifier', PatientIdentifierViewSet, basename='patient-identifier')
 router.register('admission', AdmissionViewSet, basename='admission')
 
 router.register('bed', BedViewSet, basename='bed')

@@ -23,7 +23,7 @@ class PatientViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Cr
         return Response(serializer.data)
 
 
-class PatientIdentifierDataViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
+class PatientIdentifierViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
 
     queryset = PatientIdentifier.objects.all()
     serializer_class = PatientIdentifierSerializer
