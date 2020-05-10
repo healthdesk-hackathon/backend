@@ -31,6 +31,7 @@ python-barcode = "*"
 pillow = "*"
 django-simple-history = "*"
 django-model-utils = "*"
+stringcase = "*"
 
 [requires]
 python_version = "3.7"

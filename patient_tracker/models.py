@@ -57,7 +57,7 @@ class BedAssignment(ImmutableBaseModel):
         ordering = ['-assigned_at']
 
 
-class Admission(CurrentBaseModel):
+class Admission(ImmutableBaseModel):
     """
     Represents the admission into the hospital system, when the admins / triage have
     performed the initial steps for getting the patient into the system.

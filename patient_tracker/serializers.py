@@ -32,7 +32,7 @@ class AdmissionSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
         patient = PatientSerializer()
 
-        fields = CurrentSerializerMeta.base_fields + [
+        fields = ImmutableSerializerMeta.base_fields + [
             'local_barcode',
             'local_barcode_image',
             'patient',

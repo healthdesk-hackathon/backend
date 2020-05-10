@@ -78,7 +78,7 @@ INSTALLED_APPS = [
     'patient',
     'patient_tracker',
     'simple_history',
-
+    'workflow'
 ]
 
 MIDDLEWARE = [

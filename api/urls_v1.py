@@ -14,6 +14,7 @@ from patient_tracker.views import AdmissionViewSet, HealthSnapshotViewSet,  \
     DischargeViewSet, DeceasedViewSet, \
     OverallWellbeingViewSet, CommonSymptomsViewSet, GradedSymptomsViewSet, RelatedConditionsViewSet
 
+from workflow.views import WorkflowViewSet
 
 app_name = 'v1'
 
@@ -34,6 +35,7 @@ router = DefaultRouter()
 
 ### SETUP YOUR API URLS HERE ### # noqa: E266
 
+router.register('workflow', WorkflowViewSet, basename='workflow')
 router.register('patient', PatientViewSet, basename='patient')
 
 router.register('phone', PhoneViewSet, basename='phone')
