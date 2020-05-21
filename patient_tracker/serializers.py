@@ -32,7 +32,7 @@ class AdmissionSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
         patient = PatientSerializer()
 
-        fields = ImmutableSerializerMeta.base_fields + [
+        fields = CurrentSerializerMeta.base_fields + [
             'local_barcode',
             'local_barcode_image',
             'patient',
@@ -43,7 +43,7 @@ class AdmissionSerializer(BaseSaveSerializer, serializers.ModelSerializer):
             'current_bed',
             'patient_display'
         ]
-        read_only_fields = ImmutableSerializerMeta.read_only_fields
+        read_only_fields = CurrentSerializerMeta.read_only_fields
 
         depth = 1
 

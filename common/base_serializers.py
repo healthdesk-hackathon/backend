@@ -1,3 +1,25 @@
+from importlib import import_module
+import stringcase
+
+MODULES=['patient', 'patient_tracker', 'equipment']
+
+
+class SerializerMixin():
+
+    def str_to_class(self, classname):
+
+        for m in MODULES:
+            classname = stringcase.pascalcase(classname)
+            mname = m + '.models'
+            module = import_module(mname)
+            try:
+                print(module)
+                print(classname)
+                c = getattr(module, classname)
+                return c
+            except AttributeError:
+                pass
+
 
 class BaseSaveSerializer():
 
