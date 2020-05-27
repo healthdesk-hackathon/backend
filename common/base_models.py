@@ -45,6 +45,9 @@ class ImmutableBaseModel(SoftDeletableModel, TimeStampedModel):
     def current_user(self, value):
         self._current_user = value
 
+    def natural_key(self):
+        return (__class__.__name__, self.id)
+
     def prevent_update(self):
         """prevent a record from being saved if it has a pk"""
         if self.pk:
@@ -116,3 +119,9 @@ class CurrentBaseModel(TimeStampedModel):
             # Set the modifier on every save
             self.modifier = self.current_user
         super().save(**kwargs)
+
+    def natural_key(self):
+        return (__class__.__name__, self.id)
+
+
+
