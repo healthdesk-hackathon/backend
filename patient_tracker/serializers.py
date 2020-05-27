@@ -49,6 +49,8 @@ class AdmissionSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
 
 class HealthSnapshotSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+    admission_id=serializers.PrimaryKeyRelatedField(
+        source='admission', write_only=True, queryset=Admission.objects.all())
 
     class Meta:
         model = HealthSnapshot
@@ -73,6 +75,8 @@ class HealthSnapshotSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
 
 class DischargeSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+    admission_id=serializers.PrimaryKeyRelatedField(
+        source='admission', write_only=True, queryset=Admission.objects.all())
 
     class Meta:
         model = Discharge
@@ -86,6 +90,8 @@ class DischargeSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
 
 class DeceasedSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+    admission_id=serializers.PrimaryKeyRelatedField(
+        source='admission', write_only=True, queryset=Admission.objects.all())
 
     class Meta:
         model = Deceased
@@ -99,6 +105,9 @@ class DeceasedSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
 
 class OverallWellbeingSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+    admission_id=serializers.PrimaryKeyRelatedField(
+        source='admission', write_only=True, queryset=Admission.objects.all())
+
     class Meta:
         model = OverallWellbeing
         fields = ImmutableSerializerMeta.base_fields + [
@@ -109,6 +118,10 @@ class OverallWellbeingSerializer(BaseSaveSerializer, serializers.ModelSerializer
 
 
 class CommonSymptomsSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+
+    admission_id=serializers.PrimaryKeyRelatedField(
+        source='admission', write_only=True, queryset=Admission.objects.all())
+
     class Meta:
         model = CommonSymptoms
         fields = ImmutableSerializerMeta.base_fields + [
@@ -136,6 +149,8 @@ class GradedSymptomsSerializer(BaseSaveSerializer, serializers.ModelSerializer):
     """
     Symptoms that a patient grades on a scale of 0 to 10
     """
+    admission_id=serializers.PrimaryKeyRelatedField(
+        source='admission', write_only=True, queryset=Admission.objects.all())
 
     class Meta:
         model = GradedSymptoms
@@ -149,6 +164,9 @@ class GradedSymptomsSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
 
 class RelatedConditionsSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+    admission_id=serializers.PrimaryKeyRelatedField(
+        source='admission', write_only=True, queryset=Admission.objects.all())
+
     class Meta:
         model = RelatedConditions
         fields = ImmutableSerializerMeta.base_fields + [
