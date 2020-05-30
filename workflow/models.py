@@ -49,3 +49,12 @@ class Workflow(ImmutableBaseModel):
         data.current_user = self.current_user
         data.save()
         return data
+
+    def triage_submission(self):
+        patient_data = Patient()
+        patient_data.current_user = self.current_user
+        patient_data.save()
+        data = Admission(patient_id=patient_data.id, admitted=False)
+        data.current_user = self.current_user
+        data.save()
+        return data

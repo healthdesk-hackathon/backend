@@ -2,28 +2,57 @@ import sys
 from rest_framework import serializers
 
 from workflow.models import Workflow, Patient, Admission
+from patient.models import PersonalData
 from django.contrib.contenttypes.models import ContentType
 
 from common.base_serializers import ImmutableSerializerMeta, CurrentSerializerMeta, BaseSaveSerializer, SerializerMixin
 import stringcase
 
+from patient.serializers import PersonalDataSerializer, PatientIdentifierSerializer, PhoneSerializer, NextOfKinContactSerializer
+
 
 class PatientSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+    personal_data = PersonalDataSerializer()
+    patient_identifiers = PatientIdentifierSerializer(many=True)
+    phones = PhoneSerializer(many=True)
+    next_of_kin_contacts = NextOfKinContactSerializer(many=True)
 
     class Meta:
         model = Patient
+        extra_kwargs={
+            'current_admission_id': {'read_only': True},
+            'personal_data': {'read_only': True},
+            'patient_identifiers': {'read_only': True},
+            'phones': {'read_only': True},
+            'next_of_kin_contacts': {'read_only': True}
+        }
 
-        fields = ImmutableSerializerMeta.base_fields
+        fields = ImmutableSerializerMeta.base_fields + [
+            'current_admission_id',
+            'personal_data',
+            'patient_identifiers',
+            'phones',
+            'next_of_kin_contacts'
+        ]
         read_only_fields=ImmutableSerializerMeta.read_only_fields
+        depth=2
 
 
 class AdmissionSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+    patient_id=serializers.PrimaryKeyRelatedField(source='patient', write_only=True, queryset=Patient.objects.all())
+    patient = PatientSerializer()
 
     class Meta:
         model = Admission
+        extra_kwargs = {
+            'patient': {'read_only': True},
+            'patient_id': {'read_only': True},
 
-        fields = CurrentSerializerMeta.base_fields
+        }
+
+        fields = CurrentSerializerMeta.base_fields + ['patient', 'patient_id']
         read_only_fields=CurrentSerializerMeta.read_only_fields
+        depth=3
 
 
 class GenericData(SerializerMixin, serializers.RelatedField):

@@ -4,31 +4,6 @@ from patient.models import Patient, PatientIdentifier, PersonalData, NextOfKinCo
 from common.base_serializers import ImmutableSerializerMeta, CurrentSerializerMeta, BaseSaveSerializer
 
 
-class PatientSerializer(BaseSaveSerializer, serializers.ModelSerializer):
-
-    class Meta:
-        model = Patient
-
-        extra_kwargs={
-            'current_admission_id': {'read_only': True},
-            'personal_data': {'read_only': True},
-            'patient_identifiers': {'read_only': True},
-            'phones': {'read_only': True},
-            'next_of_kin_contacts': {'read_only': True}
-        }
-
-        fields = ImmutableSerializerMeta.base_fields + [
-            'current_admission_id',
-            'personal_data',
-            'patient_identifiers',
-            'phones',
-            'next_of_kin_contacts'
-        ]
-        read_only_fields=ImmutableSerializerMeta.read_only_fields
-
-        depth = 1
-
-
 class PatientIdentifierSerializer(BaseSaveSerializer, serializers.ModelSerializer):
 
     patient_id=serializers.PrimaryKeyRelatedField(source='patient', write_only=True, queryset=Patient.objects.all())
@@ -65,7 +40,8 @@ class PhoneSerializer(BaseSaveSerializer, serializers.ModelSerializer):
     patient_id=serializers.PrimaryKeyRelatedField(source='patient', write_only=True, queryset=Patient.objects.all())
 
     class Meta:
-        model=Phone
+        model = Phone
+
         fields=CurrentSerializerMeta.base_fields + [
             'patient_id',
             'phone_number',
@@ -92,4 +68,34 @@ class NextOfKinContactSerializer(BaseSaveSerializer, serializers.ModelSerializer
             'notes',
         ]
         read_only_fields=CurrentSerializerMeta.read_only_fields
+
+
+class PatientSerializer(BaseSaveSerializer, serializers.ModelSerializer):
+
+    personal_data = PersonalDataSerializer()
+    patient_identifiers = PatientIdentifierSerializer(many=True)
+    phones = PhoneSerializer(many=True)
+    next_of_kin_contacts = NextOfKinContactSerializer(many=True)
+
+    class Meta:
+        model = Patient
+
+        extra_kwargs={
+            'current_admission_id': {'read_only': True},
+            'personal_data': {'read_only': True},
+            'patient_identifiers': {'read_only': True},
+            'phones': {'read_only': True},
+            'next_of_kin_contacts': {'read_only': True}
+        }
+
+        fields = ImmutableSerializerMeta.base_fields + [
+            'current_admission_id',
+            'personal_data',
+            'patient_identifiers',
+            'phones',
+            'next_of_kin_contacts'
+        ]
+        read_only_fields=ImmutableSerializerMeta.read_only_fields
+
+        depth = 1
 
